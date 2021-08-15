@@ -1,5 +1,8 @@
 const { SlashCommand, CommandOptionType } = require('slash-create');
-const ytdl = require('ytdl-core-discord');
+const ytdl = require('ytdl-core');
+const {
+	joinVoiceChannel,
+} = require('@discordjs/voice');
 const search = require('youtube-search');
 const client = require('../../index.js');
 const { MessageEmbed } = require('discord.js');
@@ -33,7 +36,7 @@ module.exports = class PlayCommand extends SlashCommand {
 			};
 		}
 		else {
-			const { results } = await search(ctx.options.liedje, { maxResults: 1, key: 'AIzaSyBhKg_NqpWfBtEYoqMitojadSr7lHOxRsI' });
+			const { results } = await search(ctx.options.liedje, { maxResults: 1, key: 'AIzaSyDdujnApOugMJxodxUs13FULkVF-AuNZHc' });
 			if (!results.length) return ctx.send('Geen liedjes gevonden!');
 			const result = results[0];
 			song = {
@@ -60,7 +63,12 @@ module.exports = class PlayCommand extends SlashCommand {
 			queueContruct.songs.push(song);
 
 			try {
-				const connection = await voiceChannel.join();
+				const connection = joinVoiceChannel({
+					channelId: voiceChannel.id,
+					guildId: ctx.guildID,
+					adapterCreator: client.guilds.cache.get(ctx.guildID).voiceAdapterCreator,
+				});
+				console.log(voiceChannel.id);
 				queueContruct.connection = connection;
 				client.music.play(client.guilds.cache.get(ctx.guildID), queueContruct.songs[0]);
 			}
@@ -72,10 +80,11 @@ module.exports = class PlayCommand extends SlashCommand {
 		}
 		else {
 			client.music.queue.get(ctx.guildID).songs.push(song);
-			client.guilds.cache.get(ctx.guildID).channels.cache.get(ctx.channelID).send(new MessageEmbed()
+			client.guilds.cache.get(ctx.guildID).channels.cache.get(ctx.channelID).send({ embeds: [new MessageEmbed()
 				.setTitle(`Toegevoegd aan queue: **${song.title}**`)
 				.setDescription(song.url)
-				.setThumbnail(song.thumbnail));
+				.setThumbnail(song.thumbnail),
+			] });
 		}
 	}
 };
