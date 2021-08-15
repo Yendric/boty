@@ -1,0 +1,2 @@
+# Boty
+Yendric Discord Bot
