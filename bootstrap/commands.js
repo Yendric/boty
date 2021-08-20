@@ -11,7 +11,7 @@ for (const file of commandFiles) {
 	commands.set(command.data.name, command);
 }
 
-const rest = new REST({ version: '9' }).setToken(process.env.token);
+const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
 client.guilds.cache.each(guild => {
 	slashCommandsForGuild(guild.id);
@@ -34,7 +34,7 @@ async function slashCommandsForGuild(guildId) {
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 
-	const command = client.commands.get(interaction.commandName);
+	const command = commands.get(interaction.commandName);
 
 	if (!command) return;
 
