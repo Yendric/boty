@@ -1,20 +1,15 @@
-const { SlashCommand } = require('slash-create');
-const client = require('../../index.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { queue } = require('../../bootstrap/music.js');
 
-module.exports = class ResumeCommand extends SlashCommand {
-	constructor(creator) {
-		super(creator, {
-			name: 'resume',
-			description: 'Hervat muziek.',
-		});
-	}
-
-	async run(ctx) {
-		ctx.defer();
-		const serverQueue = client.music.queue.get(ctx.guildID);
-		if (!client.guilds.cache.get(ctx.guildID).members.cache.get(ctx.member.id)?.voice?.channel) return ctx.send('Je moet in een voice channel zijn om de muziek te hervatten!');
-		if (!serverQueue) return ctx.send('Er speelt geen liedje!');
-		ctx.send('Muziek hervat.');
-		serverQueue.connection.dispatcher.resume();
-	}
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('resume')
+		.setDescription('Hervat de muziek.'),
+	async execute(interaction) {
+		const serverQueue = queue.get(interaction.guild.id);
+		if (!interaction.member?.voice?.channel) return interaction.reply('Je moet in een voice channel zijn om de muziek te hervatten!');
+		if (!serverQueue) return interaction.reply('Er speelt geen liedje!');
+		serverQueue.player.unpause();
+		interaction.reply('Muziek hervat.');
+	},
 };

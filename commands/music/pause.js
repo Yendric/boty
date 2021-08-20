@@ -1,20 +1,15 @@
-const { SlashCommand } = require('slash-create');
-const client = require('../../index.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { queue } = require('../../bootstrap/music.js');
 
-module.exports = class PauseCommand extends SlashCommand {
-	constructor(creator) {
-		super(creator, {
-			name: 'pause',
-			description: 'Pauzeer muziek.',
-		});
-	}
-
-	async run(ctx) {
-		ctx.defer();
-		const serverQueue = client.music.queue.get(ctx.guildID);
-		if (!client.guilds.cache.get(ctx.guildID).members.cache.get(ctx.member.id)?.voice?.channel) return ctx.send('Je moet in een voice channel zijn om de muziek te pauzeren!');
-		if (!serverQueue) return ctx.send('Er speelt geen liedje!');
-		ctx.send('Muziek gepauzeerd.');
-		serverQueue.connection.dispatcher.pause();
-	}
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('pause')
+		.setDescription('Pauzeer de muziek.'),
+	async execute(interaction) {
+		const serverQueue = queue.get(interaction.guild.id);
+		if (!interaction.member?.voice?.channel) return interaction.reply('Je moet in een voice channel zijn om de muziek te pauzeren!');
+		if (!serverQueue) return interaction.reply('Er speelt geen liedje!');
+		serverQueue.player.pause();
+		interaction.reply('Muziek gepauzeerd.');
+	},
 };

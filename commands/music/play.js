@@ -1,43 +1,35 @@
-const { SlashCommand, CommandOptionType } = require('slash-create');
 const ytdl = require('ytdl-core');
-const {
-	joinVoiceChannel,
-} = require('@discordjs/voice');
 const search = require('youtube-search');
-const client = require('../../index.js');
 const { MessageEmbed } = require('discord.js');
+const { queue, play } = require('../../bootstrap/music');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
-module.exports = class PlayCommand extends SlashCommand {
-	constructor(creator) {
-		super(creator, {
-			name: 'play',
-			description: 'Speel muziek.',
-			options: [{
-				type: CommandOptionType.STRING,
-				name: 'liedje',
-				description: 'Welk liedje wil je spelen?',
-				required: true,
-			}],
-		});
-	}
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('play')
+		.setDescription('Speel een liedje.')
+		.addStringOption(option =>
+			option.setName('liedje')
+				.setDescription('Welk liedje moet er gespeeld worden?')
+				.setRequired(true),
+		),
+	async execute(interaction) {
+		const voiceChannel = interaction.member?.voice?.channel;
+		if (!voiceChannel) return interaction.reply('Je moet in een voicechannel zitten!');
 
-	async run(ctx) {
-		ctx.defer();
-		const voiceChannel = client.guilds.cache.get(ctx.guildID).members.cache.get(ctx.member.id)?.voice?.channel;
-		if (!voiceChannel) return ctx.send('Je moet in een voicechannel zitten!');
-
+		const searchQueryOrURI = interaction.options.getString('liedje');
 		let song = {};
-		if (ytdl.validateURL(ctx.options.liedje)) {
-			const songInfo = await ytdl.getInfo(ctx.options.liedje);
+		if (ytdl.validateURL(searchQueryOrURI)) {
+			const songInfo = await ytdl.getInfo(searchQueryOrURI);
 			song = {
 				title: songInfo.videoDetails.title,
 				url: songInfo.videoDetails.video_url,
-				thumbnail: songInfo.videoDetails.thumbnail_url,
+				thumbnail: songInfo.videoDetails.thumbnails[0].url,
 			};
 		}
 		else {
-			const { results } = await search(ctx.options.liedje, { maxResults: 1, key: 'AIzaSyDdujnApOugMJxodxUs13FULkVF-AuNZHc' });
-			if (!results.length) return ctx.send('Geen liedjes gevonden!');
+			const { results } = await search(searchQueryOrURI, { maxResults: 1, key: process.env.YOUTUBE_API_KEY });
+			if (!results.length) return interaction.reply('Geen liedjes gevonden!');
 			const result = results[0];
 			song = {
 				title: result.title,
@@ -46,45 +38,37 @@ module.exports = class PlayCommand extends SlashCommand {
 			};
 		}
 
-		ctx.send(`Liedje gevonden: **${song.title}**`);
+		interaction.reply(`Liedje gevonden: **${song.title}**`);
 
-		if (!client.music.queue.get(ctx.guildID)) {
+		if (!queue.get(interaction.guild.id)) {
 			const queueContruct = {
-				textChannel: client.channels.cache.get(ctx.channelID),
+				textChannel: interaction.channel,
 				voiceChannel: voiceChannel,
 				connection: null,
+				player: null,
 				songs: [],
 				volume: 5,
-				playing: true,
 			};
 
-			client.music.queue.set(ctx.guildID, queueContruct);
-
 			queueContruct.songs.push(song);
+			queue.set(interaction.guild.id, queueContruct);
 
 			try {
-				const connection = joinVoiceChannel({
-					channelId: voiceChannel.id,
-					guildId: ctx.guildID,
-					adapterCreator: client.guilds.cache.get(ctx.guildID).voiceAdapterCreator,
-				});
-				console.log(voiceChannel.id);
-				queueContruct.connection = connection;
-				client.music.play(client.guilds.cache.get(ctx.guildID), queueContruct.songs[0]);
+				play(interaction.guild);
 			}
 			catch (err) {
-				console.log(err);
-				client.music.queue.delete(ctx.guildID);
-				return ctx.send('Er is iets foutgegaan');
+				console.error(err);
+				queue.delete(interaction.guild.id);
+				return interaction.reply('Er is iets foutgegaan');
 			}
 		}
 		else {
-			client.music.queue.get(ctx.guildID).songs.push(song);
-			client.guilds.cache.get(ctx.guildID).channels.cache.get(ctx.channelID).send({ embeds: [new MessageEmbed()
+			queue.get(interaction.guild.id).songs.push(song);
+			interaction.channel.send({ embeds: [new MessageEmbed()
 				.setTitle(`Toegevoegd aan queue: **${song.title}**`)
 				.setDescription(song.url)
 				.setThumbnail(song.thumbnail),
 			] });
 		}
-	}
+	},
 };
