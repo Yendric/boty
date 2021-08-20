@@ -1,4 +1,4 @@
 module.exports = (client) => {
-	console.log(`${client.user.username} is online op ${client.guilds.cache.size} server(s)!`);
+	console.info(`${client.user.username} is online op ${client.guilds.cache.size} server(s)!`);
 	client.user.setActivity('jou', { type: 'WATCHING' });
 };

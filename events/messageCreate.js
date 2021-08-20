@@ -1,68 +1,46 @@
-const Discord = require('discord.js');
+const { MessageEmbed } = require('discord.js');
+const { getSettings, getUser } = require('../helpers/database');
 const xpcooldown = new Set();
 
-module.exports = (client, msg) => {
+module.exports = async (client, msg) => {
 	if (msg.author.bot) return;
 	if (msg.channel.type == 'dm') return;
-	const guildConf = client.storage.settings.ensure(msg.guild.id, client.storage.defaultServerSettings);
 
-	if (msg.channel.id === guildConf.channels.memes) {
-		(async function() {
-			if (msg.attachments.size == 0 && !validURL(msg.content)) return;
-			await msg.react('👍');
-			await msg.react('👎');
-		})();
+	const serverSettings = await getSettings(msg.guild.id);
+
+	// Memes
+	if (msg.channel.id === serverSettings.memes_channel && serverSettings.memes_enabled) {
+		if (msg.attachments.size == 0 && !validURL(msg.content)) return;
+		await msg.react('👍');
+		await msg.react('👎');
 	}
+
 	// Bericht XP
 	if (!xpcooldown.has(msg.author.id)) {
+		const userData = await getUser(msg.author.id);
 		const randomXp = Math.floor(Math.random(1) * 13) + 1;
-		const key = `${msg.guild.id}-${msg.author.id}`;
 
-		client.storage.points.ensure(key, {
-			user: msg.author.id,
-			guild: msg.guild.id,
-			xp: 0,
-			messages: 0,
-			level: 1,
-		});
+		userData.increment('messages');
+		userData.increment('xp', { by: randomXp });
 
-		client.storage.points.inc(key, 'messages');
-		client.storage.points.math(key, '+', randomXp, 'xp');
-
-		const levelUser = client.storage.points.get(key, 'level');
-		const xpUser = client.storage.points.get(key, 'xp');
+		const levelUser = userData.get('level');
+		const xpUser = userData.get('xp');
 		const nextLevelXp = levelUser * levelUser * 300;
 
 		if (xpUser >= nextLevelXp) {
-			client.storage.points.inc(key, 'level');
-			const levelEmbed = new Discord.MessageEmbed()
+			userData.increment('level');
+			const levelEmbed = new MessageEmbed()
 				.setAuthor('Level up!')
 				.setColor('#33AAFF')
 				.setThumbnail(msg.author.displayAvatarURL())
-				.setDescription(`Nieuw level: **${client.storage.points.get(key, 'level')}**`)
+				.setDescription(`Nieuw level: **${levelUser + 1}**`)
 				.setFooter('Woop Woop!');
 
-			msg.channel.send(levelEmbed);
+			msg.channel.send({ embeds: [levelEmbed] });
 		}
 		xpcooldown.add(msg.author.id);
-		setTimeout(() => {
-			xpcooldown.delete(msg.author.id);
-		}, 5000);
+		setTimeout(() => xpcooldown.delete(msg.author.id), 5000);
 	}
-	if (guildConf.reclameFilter == false || guildConf.reclameFilter == 'false') return;
-	const reclame = ['http://', 'https://', 'www.', '.nl', '.be', '.com', 'discord.me', 'discord.gg'];
-	const whitelist = ['.png', '.gif', '.jpg', 'yendric.be', 'google', 'esl', '.mp4', '.mp3', '.m4a', 'youtube', 'csgo', 'steam', 'discordapp.net'];
-	reclame.filter(ad => msg.content.toLowerCase().includes(ad)).forEach(() => {
-		if (whitelist.filter(item => msg.content.toLowerCase().includes(item)).length > 0) return;
-		msg.delete();
-		return msg.channel.send(new Discord.MessageEmbed()
-			.setTitle(msg.guild.name + ' | ReclameFilter')
-			.setColor('#ff0000')
-			.setDescription(`Deze link staat niet op de whitelist, <@${msg.author.id}>. Als je vindt dat dit een fout is, neem dan contact met ons op`)
-			.setTimestamp(new Date())
-			.setFooter('Opgevraagd door ' + msg.member.displayName),
-		).then(embedMessage => embedMessage.delete({ timeout: 5000 }));
-	});
 };
 
 function validURL(str) {

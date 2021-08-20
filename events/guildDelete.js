@@ -1,4 +1,4 @@
 module.exports = (client, guild) => {
-	client.storage.settings.delete(guild.id);
+	console.log('Guild verlaten: ' + guild.name);
 };
 

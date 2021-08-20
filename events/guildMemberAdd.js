@@ -1,33 +1,32 @@
-const Discord = require('discord.js');
+const { MessageEmbed } = require('discord.js');
+const { getSettings } = require('../helpers/database');
+const { getRole, getChannel } = require('../helpers/discord');
 
 module.exports = async (client, member) => {
+	console.log('hi');
+	const serverSettings = await getSettings(member.guild.id);
 	// autorole
-	client.storage.settings.ensure(member.guild.id, client.storage.defaultServerSettings);
-	const autoRoleBool = client.storage.settings.get(member.guild.id, 'autoRole');
-	if (autoRoleBool) {
-		const autoRoleSnowflake = client.storage.settings.get(member.guild.id, 'roles.default');
-		const autoRole = member.guild.roles.cache.get(autoRoleSnowflake);
-		member.roles.add(autoRole).catch(e => console.log(e));
+	if (serverSettings.auto_role_enabled) {
+		const autoRole = getRole(member.guild.id, serverSettings.auto_role);
+		member.roles.add(autoRole).catch();
 	}
 	// welcome message
-	const welcomeBool = client.storage.settings.get(member.guild.id, 'welcomeMessage');
-	if (welcomeBool === true || welcomeBool === 'true') {
-		let welcomeMessage = client.storage.settings.get(member.guild.id, 'messages.welcome');
-		welcomeMessage = welcomeMessage.replace('{{user}}', `${member}`);
-		welcomeMessage = welcomeMessage.replace('{{discord}}', member.guild.name);
+	if (serverSettings.welcome_message_enabled) {
+		let welcomeMessage = serverSettings.welcome_message;
+		welcomeMessage = welcomeMessage.replace('{{naam}}', `${member}`);
+		welcomeMessage = welcomeMessage.replace('{{server}}', member.guild.name);
 
 		// joinmessage
-		const welcomeChannel = member.guild.channels.cache.get(client.storage.settings.get(member.guild.id, 'channels.welcome'));
-		if (welcomeChannel) {
-			welcomeChannel.send(new Discord.MessageEmbed()
-				.setTitle(`${member.guild.name}`)
-				.setColor('#00ff00')
-				.setDescription(welcomeMessage)
-				.setThumbnail(`${member.user.displayAvatarURL()}`)
-				.setTimestamp(new Date())
-				.setFooter(`Er zijn nu ${member.guild.memberCount} leden!`),
-			);
-		}
+		const welcomeChannel = getChannel(serverSettings.welcome_message_channel);
+		if (!welcomeChannel) return;
+		welcomeChannel.send({ embeds: [new MessageEmbed()
+			.setTitle(`${member.guild.name}`)
+			.setColor('#00ff00')
+			.setDescription(welcomeMessage)
+			.setThumbnail(`${member.user.displayAvatarURL()}`)
+			.setTimestamp()
+			.setFooter(`Er zijn nu ${member.guild.memberCount} leden!`),
+		] }).catch();
 	}
 };
 
