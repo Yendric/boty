@@ -1,51 +1,44 @@
-const { SlashCommand, CommandOptionType } = require('slash-create');
 const { MessageEmbed } = require('discord.js');
-const client = require('../../index');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
-module.exports = class ClearCommand extends SlashCommand {
-	constructor(creator) {
-		super(creator, {
-			name: 'clear',
-			description: 'Verwijder berichten.',
-			options: [{
-				type: CommandOptionType.INTEGER,
-				name: 'aantal',
-				description: 'Hoeveel berichten wil je verwijderen (1-99)?',
-				required: true,
-			}],
-		});
-	}
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('clear')
+		.setDescription('Verwijder een aantal berichten.')
+		.addIntegerOption(option =>
+			option.setName('aantal')
+				.setDescription('Hoeveel berichten wil je verwijderen (1-99)?')
+				.setRequired(true),
+		),
+	async execute(interaction) {
+		const guild = interaction.guild;
+		const channel = interaction.channel;
+		const hoeveelheid = interaction.options.getInteger('aantal');
 
-	async run(ctx) {
-		ctx.defer();
-		const guild = client.guilds.cache.get(ctx.guildID);
-		const channel = client.channels.cache.get(ctx.channelID);
-		const hoeveelheid = ctx.options.aantal;
-
-		if(hoeveelheid < 1 || hoeveelheid > 99) return ctx.send('Kies een getal van 1 tot 99!');
+		if(hoeveelheid < 1 || hoeveelheid > 99) return interaction.reply('Kies een getal van 1 tot 99!');
 
 		const embed = new MessageEmbed()
 			.setTitle(`${guild.name} | Moderatie`)
 			.setTimestamp()
-			.setFooter(`Opgevraagd door ${ctx.member.displayName}`);
+			.setFooter(`Opgevraagd door ${interaction.member.displayName}`);
 
 		try {
 			await channel.bulkDelete(hoeveelheid);
-			const berichtMessage = hoeveelheid == 1 ? 'bericht' : 'berichten';
-			await ctx.send({ embeds: [
+			interaction.reply({ embeds: [
 				embed
 					.setColor('#00ff00')
-					.setDescription(`${hoeveelheid} ${berichtMessage} verwijderd.`),
+					.setDescription(`${hoeveelheid} ${hoeveelheid == 1 ? 'bericht' : 'berichten'} verwijderd.`),
 			] });
-			setTimeout(ctx.delete, 5000);
+			setTimeout(() => interaction.deleteReply(), 5000);
 		}
 		catch(err) {
-			await ctx.send({ embeds: [
+			interaction.reply({ embeds: [
 				embed
 					.setColor('#ff0000')
 					.setDescription('Er is iets misgegaan (zijn er berichten ouder dan 14 dagen?).'),
 			] });
-			setTimeout(ctx.delete, 5000);
+			// deze catch is voor als iemand heel snel achter elkaar clear gebruikt.
+			setTimeout(() => interaction.deleteReply().catch(() => null), 5000);
 		}
-	}
+	},
 };

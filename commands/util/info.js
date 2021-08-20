@@ -1,32 +1,30 @@
-const { SlashCommand } = require('slash-create');
-const client = require('../../index.js');
 const { MessageEmbed } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { getMember } = require('../../helpers/discord');
 
-module.exports = class InfoCommand extends SlashCommand {
-	constructor(creator) {
-		super(creator, {
-			name: 'info',
-			description: 'Info over de discord server.',
-		});
-	}
-
-	async run(ctx) {
-		ctx.defer();
-		const guild = client.guilds.cache.get(ctx.guildID);
-		ctx.send({
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('info')
+		.setDescription('Info over de discord server.'),
+	async execute(interaction) {
+		const guild = interaction.guild;
+		interaction.reply({
 			embeds: [
 				new MessageEmbed()
 					.setTitle(guild.name + ' | Info')
 					.setColor('#33aaff')
-					.addField('Leden:', guild.memberCount)
-					.addField('Bots:', guild.members.cache.filter(member => member.user.bot).size)
-					.addField('Mensen:', guild.members.cache.filter(member => !member.user.bot).size)
-					.addField('Online mensen:', guild.members.cache.filter(member => member.presence.status !== 'offline' && !member.user.bot).size)
-					.addField('Offline mensen:', guild.members.cache.filter(member => member.presence.status == 'offline' && !member.user.bot).size)
+					.addField('Leden:', `${guild.memberCount}`, true)
+					.addField('Bots:', `${guild.members.cache.filter(member => member.user.bot).size}`, true)
+					.addField('Mensen:', `${guild.members.cache.filter(member => !member.user.bot).size}`, true)
+					.addField('Online mensen:', `${guild.members.cache.filter(member => member.presence.status !== 'offline' && !member.user.bot).size}`, true)
+					.addField('Offline mensen:', `${guild.members.cache.filter(member => member.presence.status == 'offline' && !member.user.bot).size}`, true)
+					.addField('Gemaakt op:', `${guild.createdAt.toLocaleString()}`, true)
+					.addField('Eigenaar:', `${getMember(guild.id, guild.ownerId)}`, true)
 					.setTimestamp()
-					.setFooter('Opgevraagd door ' + ctx.member.displayName)
+					.setThumbnail(guild.iconURL())
+					.setFooter('Opgevraagd door ' + interaction.member.displayName)
 					.toJSON(),
 			],
 		});
-	}
+	},
 };

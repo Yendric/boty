@@ -1,32 +1,26 @@
-const { SlashCommand } = require('slash-create');
-const client = require('../../index.js');
 const { MessageEmbed } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const Users = require('../../models/Users');
 
-module.exports = class LevelTopCommand extends SlashCommand {
-	constructor(creator) {
-		super(creator, {
-			name: 'leveltop',
-			description: 'Toont de tien beste gamers.',
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('leveltop')
+		.setDescription('Toont de beste gamers.'),
+	async execute(interaction) {
+		const points = await Users.findAll({
+			order: [
+				['xp', 'DESC'],
+			],
+			limit: 10,
 		});
-	}
-
-	async run(ctx) {
-		ctx.defer();
-		const guild = client.guilds.cache.get(ctx.guildID);
-
-		const filtered = this.client.storage.points.filter(p => p.guild === guild.id).array();
-
-		const sorted = filtered.sort((a, b) => b.xp - a.xp);
-
-		const top10 = sorted.splice(0, 10);
 
 		const embed = new MessageEmbed()
 			.setTitle('Leveltop')
-			.setDescription('Top 10 gamers!')
+			.setDescription('Top 10 gamers in alle Boty servers!')
 			.setColor(0x00AE86);
-		for (const [i, data] of top10.entries()) {
-			embed.addField('#' + i + 1, `<@${data.user}>: ${data.xp} XP (level ${data.level})`);
+		for (const [i, data] of points.entries()) {
+			embed.addField('#' + (i + 1), `<@${data.snowflake}>: ${data.xp} XP (level ${data.level})`);
 		}
-		return ctx.send({ embeds: [embed] });
-	}
+		return interaction.reply({ embeds: [embed] });
+	},
 };
