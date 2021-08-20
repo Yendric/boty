@@ -22,10 +22,15 @@ const client = new Client({ intents: [
 module.exports = { client };
 
 // Bootstrap
-require('./bootstrap/database');
-require('./bootstrap/events');
-require('./bootstrap/commands');
-require('./bootstrap/debug');
-require('./bootstrap/music');
+client.once('ready', () => {
+	require('./bootstrap/database');
+	require('./bootstrap/events');
+	require('./bootstrap/commands');
+	require('./bootstrap/debug');
+	require('./bootstrap/music');
+	console.info(`${client.user.username} is online op ${client.guilds.cache.size} server(s)!`);
+	client.user.setActivity('jou', { type: 'WATCHING' });
+});
+
 
 client.login(process.env.token);
