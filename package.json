@@ -4,7 +4,7 @@
     "description": "Boty - Yendric discord bot",
     "main": "index.js",
     "scripts": {
-        "devstart": "nodemon --ignore 'data/*'",
+        "devstart": "set DEBUG=true && nodemon --ignore 'data/*'",
         "start": "node index.js"
     },
     "devDependencies": {
