@@ -11,7 +11,6 @@ module.exports = { sequelize };
 
 const Servers = require('../models/Servers');
 const Users = require('../models/Users');
-
 Servers.sync();
 Users.sync();
 
