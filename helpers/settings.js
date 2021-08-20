@@ -1,18 +1,18 @@
-const Servers = require('../bootstrap/initDB');
-const client = require('../index');
+const { Servers } = require('../bootstrap/database');
+const { getGuild } = require('./discord');
 
 async function ensureSettings(guildID) {
 	return await Servers.create({ id: guildID });
 }
 
-function getSettings(guildID) {
+async function getSettings(guildID) {
 	await ensureSettings(guildID);
 	return Servers.findOne({ where: { id: guildID } });
 }
 
 async function getChannel(guildID, key) {
 	const channelID = await Servers.findOne({ where: { id: guildID } })[key];
-	return client.guilds.cache.get(guildID).channels.cache.get(channelID);
+	return getGuild(guildID).channels.cache.get(channelID);
 }
 
 function getMessage(guildID, key) {
@@ -21,7 +21,7 @@ function getMessage(guildID, key) {
 
 function getRole(guildID, key) {
 	const roleID = Servers.findOne({ where: { id: guildID } })[key];
-	return client.guilds.cache.get(guildID).roles.cache.get(roleID)[key];
+	return getGuild(guildID).roles.cache.get(roleID)[key];
 }
 
 module.exports = { ensureSettings, getSettings, getChannel, getMessage, getRole };
