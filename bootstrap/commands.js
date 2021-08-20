@@ -4,11 +4,31 @@ const { getFiles } = require('../helpers/files');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 
-client.commands = new Collection();
+const commands = new Collection();
 const commandFiles = getFiles('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
 	const command = require(`../commands/${file}`);
-	client.commands.set(command.data.name, command);
+	commands.set(command.data.name, command);
+}
+
+const rest = new REST({ version: '9' }).setToken(process.env.token);
+
+client.guilds.cache.each(guild => {
+	slashCommandsForGuild(guild.id);
+});
+
+async function slashCommandsForGuild(guildId) {
+	try {
+		console.info('Slash commands initialiseren voor: ' + guildId);
+		await rest.put(
+			Routes.applicationGuildCommands(process.env.APPLICATION_ID, guildId),
+			{ body: commands.map(command => command.data) },
+		);
+		console.info('Slash commands succesvol geïnitialiseerd voor: ' + guildId);
+	}
+	catch (error) {
+		console.error(error);
+	}
 }
 
 client.on('interactionCreate', async interaction => {
@@ -27,36 +47,4 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-
-const commands = [];
-
-const clientId = '838487937187446825';
-const guildId = '477520754632818689';
-
-for (const file of commandFiles) {
-	const command = require(`../commands/${file}`);
-	commands.push(command.data.toJSON());
-}
-
-const rest = new REST({ version: '9' }).setToken(process.env.token);
-
-(async () => {
-	try {
-		console.info('Slash commands worden geïnitialiseerd.');
-
-		await rest.put(
-			Routes.applicationGuildCommands(clientId, guildId),
-			{ body: commands },
-		);
-
-		// await rest.put(
-		// 	Routes.applicationCommands(clientId),
-		// 	{ body: commands },
-		// );
-
-		console.info('Slash commands zijn succesvol geïnitialiseerd.');
-	}
-	catch (error) {
-		console.error(error);
-	}
-})();
+module.exports = { commands, slashCommandsForGuild };
