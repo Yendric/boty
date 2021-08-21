@@ -1,7 +1,9 @@
 const { ensureSettings } = require('../helpers/database');
 
-module.exports = (client, guild) => {
-	console.log('Guild gejoined: ' + guild.name);
-	ensureSettings(guild.id);
+module.exports = {
+	name: 'guildCreate',
+	async execute(guild) {
+		console.info('Guild gejoined: ' + guild.name);
+		ensureSettings(guild.id);
+	},
 };
-

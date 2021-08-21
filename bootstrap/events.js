@@ -1,13 +1,14 @@
 const fs = require('fs');
 const { client } = require('..');
 
+const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
 
-fs.readdir('events/', (err, files) => {
-	if (err) return console.error(err);
-	files.forEach(file => {
-		const event = require(`../events/${file}`);
-		const eventName = file.split('.')[0];
-		client.on(eventName, event.bind(null, client));
-		console.info('Ingeladen event:' + file.split('.')[0]);
-	});
-});
+for (const file of eventFiles) {
+	const event = require(`../events/${file}`);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	}
+	else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+}

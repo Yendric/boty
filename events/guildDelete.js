@@ -1,4 +1,7 @@
-module.exports = (client, guild) => {
-	console.log('Guild verlaten: ' + guild.name);
+module.exports = {
+	name: 'guildDelete',
+	async execute(guild) {
+		console.info('Guild verlaten: ' + guild.name);
+	},
 };
 
