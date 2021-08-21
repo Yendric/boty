@@ -16,7 +16,6 @@ const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
 client.guilds.cache.each(async guild => {
 	await slashCommandsForGuild(guild.id);
-	await permissionsForGuild(guild.id);
 });
 
 async function slashCommandsForGuild(guildId) {
@@ -32,6 +31,7 @@ async function slashCommandsForGuild(guildId) {
 				}),
 			},
 		);
+		await permissionsForGuild(guildId);
 		console.info('Slash commands succesvol geïnitialiseerd voor: ' + guildId);
 	}
 	catch (error) {
@@ -39,4 +39,4 @@ async function slashCommandsForGuild(guildId) {
 	}
 }
 
-module.exports = { commands };
+module.exports = { commands, slashCommandsForGuild };

@@ -47,6 +47,10 @@ const Servers = sequelize.define('Servers', {
 		type: Sequelize.STRING,
 		allowNull: true,
 	},
+	admin_role: {
+		type: Sequelize.STRING,
+		allowNull: true,
+	},
 });
 
 module.exports = Servers;

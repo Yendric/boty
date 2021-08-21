@@ -79,6 +79,14 @@ module.exports = {
 				.addChannelOption(option =>
 					option.setName('memes_channel')
 						.setDescription('Wat is het memes kanaal?')
+						.setRequired(true)))
+		// Admin role
+		.addSubcommand(subcommand =>
+			subcommand.setName('admin_role')
+				.setDescription('Welke role moet administratieve toegang hebben tot de bot?')
+				.addRoleOption(option =>
+					option.setName('admin_role')
+						.setDescription('Welke role moet administratieve toegang hebben tot de bot?')
 						.setRequired(true))),
 	defaultPermission: false,
 	async execute(interaction) {
@@ -86,9 +94,14 @@ module.exports = {
 		const option = interaction.options.data[0];
 		const value = getDataValue(option);
 		if(value === null) return interaction.reply('Je moet een tekstkanaal opgeven.');
+
 		try {
 			settings[option.name] = getDataValue(option);
 			await settings.save();
+			// Als er een admin role geüpdated zou zijn, moet dit ook geüpdated worden bij discord.
+			const { slashCommandsForGuild } = require('../../bootstrap/commands');
+			await slashCommandsForGuild(interaction.guild.id);
+
 		}
 		catch(error) {
 			console.error(error);

@@ -1,3 +1,4 @@
+const { slashCommandsForGuild } = require('../bootstrap/commands');
 const { ensureSettings } = require('../helpers/database');
 
 module.exports = {
@@ -5,5 +6,6 @@ module.exports = {
 	async execute(guild) {
 		console.info('Guild gejoined: ' + guild.name);
 		ensureSettings(guild.id);
+		slashCommandsForGuild(guild.id);
 	},
 };
