@@ -3,6 +3,7 @@ const { Collection } = require('discord.js');
 const { getFiles } = require('../helpers/files');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
+const { permissionsForGuild } = require('./permissions');
 
 const commands = new Collection();
 const commandFiles = getFiles('./commands').filter(file => file.endsWith('.js'));
@@ -13,8 +14,9 @@ for (const file of commandFiles) {
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
-client.guilds.cache.each(guild => {
-	slashCommandsForGuild(guild.id);
+client.guilds.cache.each(async guild => {
+	await slashCommandsForGuild(guild.id);
+	await permissionsForGuild(guild.id);
 });
 
 async function slashCommandsForGuild(guildId) {
@@ -22,7 +24,13 @@ async function slashCommandsForGuild(guildId) {
 		console.info('Slash commands initialiseren voor: ' + guildId);
 		await rest.put(
 			Routes.applicationGuildCommands(process.env.APPLICATION_ID, guildId),
-			{ body: commands.map(command => command.data) },
+			{
+				body: commands.map(command => {
+					const data = command.data.toJSON();
+					data.default_permission = command?.defaultPermission ?? true;
+					return data;
+				}),
+			},
 		);
 		console.info('Slash commands succesvol geïnitialiseerd voor: ' + guildId);
 	}
@@ -31,20 +39,4 @@ async function slashCommandsForGuild(guildId) {
 	}
 }
 
-client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand()) return;
-
-	const command = commands.get(interaction.commandName);
-
-	if (!command) return;
-
-	try {
-		await command.execute(interaction);
-	}
-	catch (error) {
-		console.error(error);
-		await interaction.reply({ content: 'Er is iets foutsgegaan bij het uitvoeren van dit commando!', ephemeral: true });
-	}
-});
-
-module.exports = { commands, slashCommandsForGuild };
+module.exports = { commands };
