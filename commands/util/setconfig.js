@@ -99,8 +99,10 @@ module.exports = {
 			settings[option.name] = getDataValue(option);
 			await settings.save();
 			// Als er een admin role geüpdated zou zijn, moet dit ook geüpdated worden bij discord.
-			const { slashCommandsForGuild } = require('../../bootstrap/commands');
-			await slashCommandsForGuild(interaction.guild.id);
+			if(option.name === 'admin_role') {
+				const { slashCommandsForGuild } = require('../../bootstrap/commands');
+				slashCommandsForGuild(interaction.guild.id);
+			}
 
 		}
 		catch(error) {
