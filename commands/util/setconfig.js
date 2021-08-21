@@ -80,6 +80,7 @@ module.exports = {
 					option.setName('memes_channel')
 						.setDescription('Wat is het memes kanaal?')
 						.setRequired(true))),
+	defaultPermission: false,
 	async execute(interaction) {
 		const settings = await getSettings(interaction.guild.id);
 		const option = interaction.options.data[0];

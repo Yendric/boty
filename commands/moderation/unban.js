@@ -11,6 +11,7 @@ module.exports = {
 				.setDescription('Wie moet er geunbanned worden? (snowflake)')
 				.setRequired(true),
 		),
+	defaultPermission: false,
 	async execute(interaction) {
 		if (!interaction.guild.me.permissionsIn(interaction.channel).has('BAN_MEMBERS')) return interaction.reply('Ik heb hier geen toestemming voor.');
 

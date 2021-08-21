@@ -14,6 +14,7 @@ module.exports = {
 				.setDescription('Wat is de reden?')
 				.setRequired(true),
 		),
+	defaultPermission: false,
 	async execute(interaction) {
 		if (!interaction.guild.me.permissionsIn(interaction.channel).has('KICK_MEMBERS')) return interaction.reply('Ik heb hier geen toestemming voor.');
 

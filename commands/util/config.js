@@ -5,6 +5,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('config')
 		.setDescription('Toont de huidige server configuratie.'),
+	defaultPermission: false,
 	async execute(interaction) {
 		const settings = await getSettings(interaction.guild.id);
 		interaction.reply(`De huidige server configuratie: \`\`\`js\n${JSON.stringify(settings, undefined, 2)} \`\`\``);

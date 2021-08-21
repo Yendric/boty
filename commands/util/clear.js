@@ -10,6 +10,7 @@ module.exports = {
 				.setDescription('Hoeveel berichten wil je verwijderen (1-99)?')
 				.setRequired(true),
 		),
+	defaultPermission: false,
 	async execute(interaction) {
 		const guild = interaction.guild;
 		const channel = interaction.channel;

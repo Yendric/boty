@@ -9,6 +9,7 @@ module.exports = {
 				.setDescription('Wat wil je me laten zeggen?')
 				.setRequired(true),
 		),
+	defaultPermission: false,
 	async execute(interaction) {
 		interaction.reply('Actie wordt uitgevoerd...');
 		interaction.channel.send(interaction.options.getString('bericht'));

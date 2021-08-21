@@ -24,6 +24,7 @@ module.exports = {
 				.setDescription('Geef een beschrijving van het item dat wordt weggegeven.')
 				.setRequired(true),
 		),
+	defaultPermission: false,
 	async execute(interaction) {
 		const aantalWinnaars = interaction.options.getInteger('winnaars');
 		const tijd = interaction.options.getString('tijd');
