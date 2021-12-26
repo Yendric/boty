@@ -28,7 +28,7 @@
         "sqlite3": "npm:@vscode/sqlite3@^5.0.7",
         "youtube-search": "^1.1.6",
         "youtube-search-without-api-key": "^1.0.7",
-        "ytdl-core": "^4.9.1"
+        "ytdl-core": "^4.9.2"
     },
     "author": "Yendric Van Roey",
     "license": "ISC"
