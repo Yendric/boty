@@ -3,8 +3,8 @@ import { client } from "..";
 import { getFiles } from "../utils/files";
 
 function loadEvents() {
-  getFiles("src/events").forEach(async (file) => {
-    const event = require("../../" + file).default;
+  getFiles("events").forEach(async (file) => {
+    const event = require("../" + file).default;
     if (event.once) {
       client.once(event.name, (...args) => event.execute(...args, client.guilds.cache.get(args[0].guild.id)));
     } else {

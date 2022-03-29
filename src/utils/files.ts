@@ -1,9 +1,9 @@
 import { readdirSync, statSync } from "fs";
+import { resolve } from "path";
 
 export function getFiles(dir: string): string[] {
-  return readdirSync(dir).flatMap((file) => {
-    file = dir + "/" + file;
-    if (statSync(file).isDirectory()) return getFiles(file);
-    return file;
+  return readdirSync(resolve(__dirname, "..", dir)).flatMap((file) => {
+    if (statSync(resolve(__dirname, "..", dir, file)).isDirectory()) return getFiles(dir + "/" + file);
+    return dir + "/" + file;
   });
 }

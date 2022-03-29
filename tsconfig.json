@@ -4,7 +4,7 @@
     "emitDecoratorMetadata": true,
     "target": "es2016",
     "module": "commonjs",
-    "typeRoots": ["./node_modules/@types", "./src/types/index.ts"],
+    "typeRoots": ["./node_modules/@types"],
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

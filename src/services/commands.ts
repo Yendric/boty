@@ -11,8 +11,8 @@ import { log } from "../utils/logging";
 export const commands = new Collection<string, Command>();
 
 export function loadCommands() {
-  getFiles("src/commands").forEach(async (file) => {
-    const command = require("../../" + file).default;
+  getFiles("commands").forEach(async (file) => {
+    const command = require("../" + file).default;
     commands.set(command.data.name, command);
   });
 
