@@ -1,0 +1,47 @@
+{
+  "name": "boty",
+  "version": "1.0.0",
+  "description": "Boty - Yendric discord bot",
+  "author": "Yendric Van Roey",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Yendric/boty"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "serve": "node dist/index.js",
+    "dev": "set DEBUG=true && ts-node-dev --respawn --transpile-only ./src/index.ts",
+    "test": "jest --forceExit --coverage --verbose"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.16.0",
+    "@typescript-eslint/parser": "^5.16.0",
+    "eslint": "^8.5.0",
+    "eslint-config-prettier": "^8.5.0",
+    "nodemon": "^2.0.15",
+    "prettier": "2.6.0",
+    "ts-node-dev": "^1.1.8"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^0.12.0",
+    "@discordjs/opus": "^0.7.0",
+    "@discordjs/rest": "^0.3.0",
+    "@discordjs/voice": "^0.8.0",
+    "colors": "^1.4.0",
+    "discord-api-types": "^0.29.0",
+    "discord.js": "^13.4.0",
+    "dotenv": "^16.0.0",
+    "ffmpeg-static": "^5.0.0",
+    "libsodium-wrappers": "^0.7.9",
+    "ms": "^2.1.3",
+    "path": "^0.12.7",
+    "reflect-metadata": "^0.1.13",
+    "sequelize": "^6.12.2",
+    "sequelize-typescript": "^2.1.3",
+    "sqlite3": "npm:@vscode/sqlite3@^5.0.7",
+    "typescript": "^4.6.3",
+    "youtube-search": "^1.1.6",
+    "ytdl-core": "^4.9.2"
+  }
+}
