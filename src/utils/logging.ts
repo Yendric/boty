@@ -1,4 +1,4 @@
-import colors from "colors";
+import colors from "@colors/colors";
 
 export function log(message: string) {
   console.info(colors.dim(`[${new Date().toLocaleTimeString()}] `) + colors.white(message));
