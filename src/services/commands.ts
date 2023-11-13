@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { client } from "..";
-import { Collection, Guild } from "discord.js";
+import { Collection, Guild, REST, Routes } from "discord.js";
 import { getFiles } from "../utils/files";
-import { REST } from "@discordjs/rest";
-import { Routes } from "discord-api-types/v9";
 import { permissionsForGuild } from "./permissions";
 import Command from "../types/Command";
 import { log } from "../utils/logging";

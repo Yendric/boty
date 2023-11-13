@@ -1,5 +1,11 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { MessageEmbed, MessageActionRow, MessageButton, CommandInteraction } from "discord.js";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  CommandInteraction,
+  EmbedBuilder,
+  SlashCommandBuilder,
+} from "discord.js";
 import { queues, skip, stop } from "../../services/music";
 import CommandProps from "../../types/CommandProps";
 import QueueSong from "../../types/QueueSong";
@@ -10,9 +16,9 @@ export default {
     const songs = queues.get(guild)?.songs;
     if (!songs) return interaction.reply("Geen liedjes in de queue");
 
-    const buttons = new MessageActionRow()
-      .addComponents(new MessageButton().setCustomId("skip").setLabel("Skip liedje").setStyle("PRIMARY"))
-      .addComponents(new MessageButton().setCustomId("stop").setLabel("Stop met spelen").setStyle("DANGER"));
+    const buttons = new ActionRowBuilder<ButtonBuilder>()
+      .addComponents(new ButtonBuilder().setCustomId("skip").setLabel("Skip liedje").setStyle(ButtonStyle.Primary))
+      .addComponents(new ButtonBuilder().setCustomId("stop").setLabel("Stop met spelen").setStyle(ButtonStyle.Danger));
 
     const collector = channel.createMessageComponentCollector();
 
@@ -43,11 +49,16 @@ export default {
 };
 
 function generateEmbed(songs: QueueSong[]) {
-  const embed = new MessageEmbed().setTitle("Queue");
+  const embed = new EmbedBuilder().setTitle("Queue");
 
   if (!songs.length) return embed.setDescription("De queue is nu leeg.");
   for (const [index, song] of songs.entries()) {
-    embed.addField(index == 0 ? "Nu speelt: **" + song.title + "**" : index + ". **" + song.title + "**", song.url);
+    embed.addFields([
+      {
+        name: index == 0 ? "Nu speelt: **" + song.title + "**" : index + ". **" + song.title + "**",
+        value: song.url,
+      },
+    ]);
   }
   return embed;
 }

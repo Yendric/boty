@@ -1,4 +1,4 @@
-import { GuildMember, MessageEmbed } from "discord.js";
+import { ChannelType, EmbedBuilder, GuildMember } from "discord.js";
 import { getSettings } from "../utils/database";
 
 export default {
@@ -12,11 +12,11 @@ export default {
         .replace("{{server}}", member.guild.name);
 
       const welcomeMessageChannel = member.guild.channels.cache.get(serverSettings.welcomeMessageChannel);
-      if (!welcomeMessageChannel || welcomeMessageChannel.type !== "GUILD_TEXT") return;
+      if (!welcomeMessageChannel || welcomeMessageChannel.type !== ChannelType.GuildText) return;
 
       welcomeMessageChannel.send({
         embeds: [
-          new MessageEmbed()
+          new EmbedBuilder()
             .setTitle(`${member.guild.name}`)
             .setColor("#00ff00")
             .setDescription(welcomeMessage)

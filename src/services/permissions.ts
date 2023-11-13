@@ -1,12 +1,12 @@
-import { ApplicationCommandPermissionData, Guild, GuildApplicationCommandPermissionData } from "discord.js";
+import { Guild } from "discord.js";
 import { getSettings } from "../utils/database";
 
 export async function permissionsForGuild(guild: Guild) {
   const settings = await getSettings(guild);
   const commands = await guild.commands.fetch();
 
-  const fullPermissions: GuildApplicationCommandPermissionData[] = [];
-  let rolePermissions: ApplicationCommandPermissionData;
+  const fullPermissions: any[] = [];
+  let rolePermissions: any;
   if (settings.adminRole && guild.roles.cache.get(settings.adminRole)) {
     rolePermissions = {
       id: settings.adminRole,
@@ -16,7 +16,7 @@ export async function permissionsForGuild(guild: Guild) {
   }
 
   commands.each(async (command) => {
-    const permissions: GuildApplicationCommandPermissionData = {
+    const permissions: any = {
       id: command.id,
       permissions: [
         {
@@ -29,5 +29,9 @@ export async function permissionsForGuild(guild: Guild) {
     if (rolePermissions) permissions.permissions = [...permissions.permissions, rolePermissions];
     fullPermissions.push(permissions);
   });
-  await guild?.commands.permissions.set({ fullPermissions });
+  /* @ts-ignore */
+  await guild?.commands.permissions.set({
+    token: process.env.TOKEN ?? "",
+    permissions: fullPermissions,
+  });
 }

@@ -1,5 +1,4 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import CommandProps from "../../types/CommandProps";
 
 export default {
@@ -14,7 +13,7 @@ export default {
     const hoeveelheid = options.getInteger("aantal");
     if (!hoeveelheid || hoeveelheid < 1 || hoeveelheid > 99) return interaction.reply("Kies een getal van 1 tot 99!");
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`${guild.name} | Moderatie`)
       .setTimestamp()
       .setFooter({ text: `Opgevraagd door ${member.displayName}` });

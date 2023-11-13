@@ -1,8 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import { SlashCommandBuilder } from "@discordjs/builders";
 import { getSettings } from "../../utils/database";
 import { client } from "../..";
-import { CommandInteraction, CommandInteractionOption } from "discord.js";
+import {
+  ApplicationCommandOptionType,
+  ChannelType,
+  CommandInteraction,
+  CommandInteractionOption,
+  SlashCommandBuilder,
+} from "discord.js";
 import CommandProps from "../../types/CommandProps";
 import { loadCommandsForGuild } from "../../services/commands";
 import { snakeToCamal } from "../../utils/string";
@@ -150,8 +154,8 @@ function getDataValue(option: CommandInteractionOption) {
   const options = option.options[0] ?? null;
   if (!options.value) return;
 
-  if (options.type === "CHANNEL") {
-    if (client.channels.cache.get(options.value.toString())?.type === "GUILD_TEXT") {
+  if (options.type === ApplicationCommandOptionType.Channel) {
+    if (client.channels.cache.get(options.value.toString())?.type === ChannelType.GuildText) {
       return options.value;
     } else {
       return;

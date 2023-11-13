@@ -1,5 +1,4 @@
-import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, GuildMember, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { getUser } from "../../utils/database";
 import CommandProps from "../../types/CommandProps";
 import { getXpData } from "../../services/level";
@@ -22,7 +21,7 @@ export default {
     const user = await getUser(member.id);
     const userXpData = getXpData(user);
 
-    const levelEmbed = new MessageEmbed()
+    const levelEmbed = new EmbedBuilder()
       .setAuthor({ name: `${guild.name} | Level info van ${member.displayName}` })
       .setDescription(
         `Level: **${userXpData.level}**

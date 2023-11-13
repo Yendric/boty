@@ -1,4 +1,4 @@
-import { CommandInteractionOptionResolver, Guild, GuildMember, TextBasedChannel, TextChannel } from "discord.js";
+import { CommandInteractionOptionResolver, Guild, GuildMember, TextChannel } from "discord.js";
 
 export default interface CommandProps {
   guild: Guild;

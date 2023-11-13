@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { client } from "..";
 import { getFiles } from "../utils/files";
 

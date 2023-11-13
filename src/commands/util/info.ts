@@ -1,5 +1,4 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import CommandProps from "../../types/CommandProps";
 
 export default {
@@ -7,32 +6,47 @@ export default {
   async execute(interaction: CommandInteraction, { guild, member }: CommandProps) {
     interaction.reply({
       embeds: [
-        new MessageEmbed()
+        new EmbedBuilder()
           .setTitle(guild.name + " | Info")
           .setColor("#33aaff")
-          .addField("Leden:", `${guild.memberCount}`, true)
-          .addField("Bots:", `${guild.members.cache.filter((member) => member.user.bot).size}`, true)
-          .addField("Mensen:", `${guild.members.cache.filter((member) => !member.user.bot).size}`, true)
-          .addField(
-            "Online mensen:",
-            `${
-              guild.members.cache.filter(
-                (member) => !member.user.bot && (member?.presence?.status ?? "offline") !== "offline"
-              ).size
-            }`,
-            true
-          )
-          .addField(
-            "Offline mensen:",
-            `${
-              guild.members.cache.filter(
-                (member) => !member.user.bot && (member?.presence?.status ?? "offline") == "offline"
-              ).size
-            }`,
-            true
-          )
-          .addField("Gemaakt op:", `${guild.createdAt.toLocaleString()}`, true)
-          .addField("Eigenaar:", `${guild.members.cache.get(guild.ownerId)}`, true)
+          .addFields([
+            { name: "Leden:", value: `${guild.memberCount}`, inline: true },
+            { name: "Bots:", value: `${guild.members.cache.filter((member) => member.user.bot).size}`, inline: true },
+
+            {
+              name: "Mensen:",
+              value: `${guild.members.cache.filter((member) => !member.user.bot).size}`,
+              inline: true,
+            },
+            {
+              name: "Online mensen:",
+              value: `${
+                guild.members.cache.filter(
+                  (member) => !member.user.bot && (member?.presence?.status ?? "offline") !== "offline"
+                ).size
+              }`,
+              inline: true,
+            },
+            {
+              name: "Offline mensen:",
+              value: `${
+                guild.members.cache.filter(
+                  (member) => !member.user.bot && (member?.presence?.status ?? "offline") == "offline"
+                ).size
+              }`,
+              inline: true,
+            },
+            {
+              name: "Gemaakt op:",
+              value: `${guild.createdAt.toLocaleString()}`,
+              inline: true,
+            },
+            {
+              name: "Eigenaar:",
+              value: `${guild.members.cache.get(guild.ownerId)}`,
+              inline: true,
+            },
+          ])
           .setTimestamp()
           .setThumbnail(guild.iconURL() ?? "")
           .setFooter({ text: "Opgevraagd door " + member.user.username })

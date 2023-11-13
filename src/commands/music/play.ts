@@ -1,8 +1,7 @@
 import ytdl from "ytdl-core";
 import search from "youtube-search";
-import { CommandInteraction, MessageEmbed } from "discord.js";
+import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { initializePlayer, queues } from "../../services/music";
-import { SlashCommandBuilder } from "@discordjs/builders";
 import CommandProps from "../../types/CommandProps";
 import QueueSong from "../../types/QueueSong";
 
@@ -50,7 +49,7 @@ export default {
     } else {
       queue.songs.push(song);
 
-      let embed = new MessageEmbed().setTitle(`Toegevoegd aan queue: **${song.title}**`).setDescription(song.url);
+      let embed = new EmbedBuilder().setTitle(`Toegevoegd aan queue: **${song.title}**`).setDescription(song.url);
       if (song.thumbnail) embed = embed.setThumbnail(song.thumbnail);
       channel.send({
         embeds: [embed],

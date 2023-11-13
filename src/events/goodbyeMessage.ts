@@ -1,4 +1,4 @@
-import { GuildMember, MessageEmbed } from "discord.js";
+import { ChannelType, EmbedBuilder, GuildMember } from "discord.js";
 import { getSettings } from "../utils/database";
 
 export default {
@@ -12,11 +12,11 @@ export default {
         .replace("{{server}}", member.guild.name);
 
       const goodbyeMessageChannel = member.guild.channels.cache.get(serverSettings.goodbyeMessageChannel);
-      if (!goodbyeMessageChannel || goodbyeMessageChannel.type !== "GUILD_TEXT") return;
+      if (!goodbyeMessageChannel || goodbyeMessageChannel.type !== ChannelType.GuildText) return;
 
       goodbyeMessageChannel.send({
         embeds: [
-          new MessageEmbed()
+          new EmbedBuilder()
             .setTitle(`${member.guild.name}`)
             .setColor("#ff0000")
             .setDescription(goodbyeMessage)

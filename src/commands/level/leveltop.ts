@@ -1,5 +1,4 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import Users from "../../models/User";
 
 export default {
@@ -10,12 +9,13 @@ export default {
       limit: 10,
     });
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle("Leveltop")
       .setDescription("Top 10 gamers in alle Boty servers!")
       .setColor(0x00ae86);
+
     for (const [i, data] of points.entries()) {
-      embed.addField("#" + (i + 1), `<@${data.snowflake}>: ${data.xp} XP (level ${data.level})`);
+      embed.addFields([{ name: "#" + (i + 1), value: `<@${data.snowflake}>: ${data.xp} XP (level ${data.level})` }]);
     }
     return interaction.reply({ embeds: [embed] });
   },

@@ -1,5 +1,4 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction, MessageEmbed } from "discord.js";
+import { ChannelType, CommandInteraction, EmbedBuilder, SlashCommandBuilder, TextChannel } from "discord.js";
 import ms from "ms";
 import { client } from "../..";
 import CommandProps from "../../types/CommandProps";
@@ -27,12 +26,12 @@ export default {
   async execute(interaction: CommandInteraction, { options }: CommandProps) {
     const aantalWinnaars = options.getInteger("winnaars");
     const tijd = options.getString("tijd");
-    const channel = options.getChannel("channel");
+    const channel = options.getChannel("channel") as TextChannel;
     const item = options.getString("item");
 
-    if (!aantalWinnaars || !tijd || !channel || !item || channel.type !== "GUILD_TEXT") throw new Error();
+    if (!aantalWinnaars || !tijd || !channel || !item || channel.type !== ChannelType.GuildText) throw new Error();
 
-    const giveawayEmbed = new MessageEmbed()
+    const giveawayEmbed = new EmbedBuilder()
       .setTitle(`🎉 **GIVEAWAY: ${item}** `)
       .setDescription(
         `**Aantal winnaars**: ${aantalWinnaars}\n**Eindigt op**: ${new Date(new Date().getTime() + ms(tijd))}`
@@ -54,7 +53,7 @@ export default {
       if (peopleReacted.size < aantalWinnaars) {
         embedSend.edit({
           embeds: [
-            new MessageEmbed()
+            new EmbedBuilder()
               .setTitle(`🎉 **GIVEAWAY: ${item}** `)
               .setDescription("**Winnaars**: niemand heeft gewonnen")
               .setFooter({ text: "Beëindigd om" })
@@ -75,7 +74,7 @@ export default {
 
       embedSend.edit({
         embeds: [
-          new MessageEmbed()
+          new EmbedBuilder()
             .setTitle(`🎉 **GIVEAWAY: ${item}** `)
             .setDescription(`**Winnaars**: ${winners.join()}`)
             .setFooter({ text: "Beëindigd om" })

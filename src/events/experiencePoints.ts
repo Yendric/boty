@@ -1,4 +1,4 @@
-import { Message, MessageEmbed } from "discord.js";
+import { ChannelType, EmbedBuilder, Message } from "discord.js";
 import { addXp } from "../services/level";
 import { getUser } from "../utils/database";
 
@@ -8,7 +8,7 @@ export default {
   name: "messageCreate",
   async execute(message: Message) {
     if (message.author.bot) return;
-    if (message.channel.type == "DM") return;
+    if (message.channel.type == ChannelType.DM) return;
     if (!message.guild) return;
 
     if (!xpCooldown.has(message.author.id)) {
@@ -18,7 +18,7 @@ export default {
       if (userXpData.levelUp) {
         message.channel.send({
           embeds: [
-            new MessageEmbed()
+            new EmbedBuilder()
               .setAuthor({ name: "Level up!" })
               .setColor("#33AAFF")
               .setThumbnail(message.author.displayAvatarURL())

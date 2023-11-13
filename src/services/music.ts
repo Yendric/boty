@@ -1,5 +1,5 @@
 import ytdl from "ytdl-core";
-import { Guild, MessageEmbed, TextChannel, VoiceBasedChannel } from "discord.js";
+import { EmbedBuilder, Guild, TextChannel, VoiceBasedChannel } from "discord.js";
 import {
   AudioPlayerStatus,
   createAudioPlayer,
@@ -25,6 +25,7 @@ export async function initializePlayer(
     connection: joinVoiceChannel({
       channelId: voiceChannel.id,
       guildId: guild.id,
+      /* @ts-ignore */
       adapterCreator: guild.voiceAdapterCreator,
     }),
     player: createAudioPlayer(),
@@ -54,7 +55,7 @@ export async function playQueue(guild: Guild) {
   });
   queue.player.play(resource);
 
-  let embed = new MessageEmbed().setTitle(`Nu speelt: **${song.title}**`).setDescription(song.url);
+  let embed = new EmbedBuilder().setTitle(`Nu speelt: **${song.title}**`).setDescription(song.url);
   if (song.thumbnail) embed = embed.setThumbnail(song.thumbnail);
 
   queue.textChannel.send({
