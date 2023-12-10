@@ -35,6 +35,12 @@ export async function initializePlayer(
   queue.connection.subscribe(queue.player);
   queues.set(guild, queue);
 
+  queue.player.on(AudioPlayerStatus.Idle, () => {
+    queue.audioStream?.destroy();
+    queue.songs.shift();
+    playQueue(guild);
+  });
+
   playQueue(guild);
 }
 
@@ -60,12 +66,6 @@ export async function playQueue(guild: Guild) {
 
   queue.textChannel.send({
     embeds: [embed],
-  });
-
-  queue.player.on(AudioPlayerStatus.Idle, () => {
-    stream.destroy();
-    queue.songs.shift();
-    playQueue(guild);
   });
 }
 
