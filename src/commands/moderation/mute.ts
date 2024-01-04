@@ -1,5 +1,5 @@
-import { GuildMember, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import GuildCommand from "@/classes/GuildCommand";
+import { GuildMember, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import ms from "ms";
 
 export default new GuildCommand({

@@ -1,8 +1,8 @@
-import { GuildMember, SlashCommandBuilder } from "discord.js";
+import Client from "@/classes/Client";
 import GuildCommand from "@/classes/GuildCommand";
 import User from "@/models/User";
-import Client from "@/classes/Client";
 import { generateProgressBar } from "@/utils/string";
+import { GuildMember, SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder()

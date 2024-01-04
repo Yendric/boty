@@ -1,7 +1,7 @@
-import { ChannelType } from "discord.js";
-import { validURL } from "../utils/string";
 import EventHandler from "@/classes/EventHandler";
 import Guild from "@/models/Guild";
+import { validURL } from "@/utils/string";
+import { ChannelType } from "discord.js";
 
 export default new EventHandler({
     event: "messageCreate",

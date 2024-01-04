@@ -19,8 +19,8 @@ Boty is een eenvoudige Discord Bot met verschillende basisfuncties zoals moderat
 
 ## Todo
 
-- Tests
-- ... laat maar weten
+-   Tests
+-   ... laat maar weten
 
 ## Bijdragen
 

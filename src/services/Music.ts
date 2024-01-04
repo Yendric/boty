@@ -1,3 +1,6 @@
+import Client from "@/classes/Client";
+import { getEnvVariable } from "@/utils/environment";
+import { htmlDecode } from "@/utils/string";
 import {
     AudioPlayer,
     AudioPlayerStatus,
@@ -10,9 +13,6 @@ import {
 import { Guild, Snowflake, TextChannel, VoiceBasedChannel } from "discord.js";
 import search from "youtube-search";
 import ytdl from "ytdl-core";
-import Client from "@/classes/Client";
-import { getEnvVariable } from "@/utils/environment";
-import { htmlDecode } from "@/utils/string";
 
 export interface Song {
     title: string;
@@ -88,7 +88,7 @@ export class MusicPlayer {
     }
 
     public play() {
-        if (!this.songs.length) return this.destroy();
+        if (!this.songs[0]) return this.destroy();
         const song = this.songs[0];
         const stream = ytdl(song.url, {
             filter: "audioonly",
@@ -139,7 +139,7 @@ export class MusicPlayer {
                 {
                     title: htmlDecode(songInfo.videoDetails.title),
                     url: songInfo.videoDetails.video_url,
-                    thumbnail: songInfo.videoDetails.thumbnails[0].url,
+                    thumbnail: songInfo.videoDetails.thumbnails[0]?.url,
                 },
             ];
         } else {

@@ -1,6 +1,6 @@
 import Client from "@/classes/Client";
 import { GuildCommandInteraction } from "@/types";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 
 enum ButtonId {
     Continue = "continue",

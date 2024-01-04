@@ -1,8 +1,8 @@
-import { GuildMember, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
-import GuildCommand from "@/classes/GuildCommand";
-import { MessageType } from "@/types";
-import ModerationService from "@/services/Moderation";
 import Client from "@/classes/Client";
+import GuildCommand from "@/classes/GuildCommand";
+import ModerationService from "@/services/Moderation";
+import { MessageType } from "@/types";
+import { GuildMember, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder()

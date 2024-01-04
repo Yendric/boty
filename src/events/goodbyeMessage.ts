@@ -1,8 +1,8 @@
-import { ChannelType } from "discord.js";
-import EventHandler from "@/classes/EventHandler";
-import { MessageType } from "@/types";
 import Client from "@/classes/Client";
+import EventHandler from "@/classes/EventHandler";
 import Guild from "@/models/Guild";
+import { MessageType } from "@/types";
+import { ChannelType } from "discord.js";
 
 export default new EventHandler({
     event: "guildMemberRemove",

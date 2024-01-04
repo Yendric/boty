@@ -1,8 +1,8 @@
-import { ChannelType, Snowflake } from "discord.js";
-import EventHandler from "@/classes/EventHandler";
 import Client from "@/classes/Client";
+import EventHandler from "@/classes/EventHandler";
 import User from "@/models/User";
 import { calculateLevelFromXp } from "@/utils/levels";
+import { ChannelType, Snowflake } from "discord.js";
 
 const xpCooldown: Set<Snowflake> = new Set();
 

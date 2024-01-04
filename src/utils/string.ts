@@ -28,10 +28,10 @@ export function htmlDecode(encoded: string) {
         gt: ">",
     };
     return encoded
-        .replace(translate_re, function (match, entity) {
-            return translate[entity];
+        .replace(translate_re, function (_, entity) {
+            return translate[entity] ?? "";
         })
-        .replace(/&#(\d+);/gi, function (match, numStr) {
+        .replace(/&#(\d+);/gi, function (_, numStr) {
             var num = parseInt(numStr, 10);
             return String.fromCharCode(num);
         });

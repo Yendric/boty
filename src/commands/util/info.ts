@@ -1,6 +1,6 @@
-import { SlashCommandBuilder } from "discord.js";
-import GuildCommand from "@/classes/GuildCommand";
 import Client from "@/classes/Client";
+import GuildCommand from "@/classes/GuildCommand";
+import { SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder().setName("info").setDescription("Info over de discord server."),

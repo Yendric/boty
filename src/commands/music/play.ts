@@ -1,7 +1,7 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, TextChannel } from "discord.js";
+import Client from "@/classes/Client";
 import GuildCommand from "@/classes/GuildCommand";
 import { MusicRegistry, Song } from "@/services/Music";
-import Client from "@/classes/Client";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, TextChannel } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder()
@@ -24,7 +24,7 @@ export default new GuildCommand({
         const songs = await musicPlayer.fetchSongs(searchQueryOrURI ?? "");
         if (songs.length === 0) return interaction.reply("Geen liedjes gevonden!");
 
-        if (songs.length === 1) {
+        if (songs.length === 1 && songs[0]) {
             await interaction.reply({
                 embeds: [generateSelectedEmbed(songs[0])],
                 components: [],
@@ -63,15 +63,12 @@ export default new GuildCommand({
 
         collector.on("collect", async (buttonInteraction) => {
             if (buttonInteraction.customId === "cancel") {
-                await buttonInteraction.update({
-                    components: [],
-                    embeds: [generateSelectedEmbed()],
-                });
-                return collector.stop();
+                return collector.stop("cancelled");
             }
 
-            const songIndex = parseInt(buttonInteraction.customId.split("-")[1]);
+            const songIndex = parseInt(buttonInteraction.customId.split("-")[1] ?? "-1");
             const song = songs[songIndex];
+            if (!song) return;
 
             await buttonInteraction.update({
                 embeds: [generateSelectedEmbed(song)],
@@ -81,8 +78,8 @@ export default new GuildCommand({
             await musicPlayer.addSong(song);
         });
 
-        collector.on("end", async (collected) => {
-            if (collected.size === 0) {
+        collector.on("end", async (collected, reason) => {
+            if (collected.size === 0 || reason === "cancelled") {
                 await interaction.editReply({
                     components: [],
                     embeds: [generateSelectedEmbed()],

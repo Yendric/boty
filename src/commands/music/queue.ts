@@ -1,7 +1,7 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, GuildMember, SlashCommandBuilder } from "discord.js";
-import { MusicRegistry, Song } from "@/services/Music";
-import GuildCommand from "@/classes/GuildCommand";
 import Client from "@/classes/Client";
+import GuildCommand from "@/classes/GuildCommand";
+import { MusicRegistry, Song } from "@/services/Music";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, GuildMember, SlashCommandBuilder } from "discord.js";
 
 enum ButtonId {
     Skip = "skip",

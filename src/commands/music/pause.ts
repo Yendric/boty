@@ -1,6 +1,6 @@
-import { SlashCommandBuilder } from "discord.js";
-import { MusicRegistry } from "@/services/Music";
 import GuildCommand from "@/classes/GuildCommand";
+import { MusicRegistry } from "@/services/Music";
+import { SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder().setName("pause").setDescription("Pauzeer de muziek."),

@@ -1,6 +1,6 @@
-import { GuildChannel, GuildMember, SlashCommandBuilder } from "discord.js";
-import Command from "./Command";
+import Command from "@/classes/Command";
 import { CommandExecutor, GuildCommandExecutor, GuildCommandInteraction } from "@/types";
+import { GuildChannel, GuildMember, SlashCommandBuilder } from "discord.js";
 
 export interface GuildCommandOptions {
     data: SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;

@@ -1,9 +1,9 @@
+import Command from "@/classes/Command";
 import EventHandler from "@/classes/EventHandler";
+import Logger from "@/services/Logger";
+import { MessageType } from "@/types";
 import { getFiles } from "@/utils/files";
 import { ClientOptions, Collection, Client as DiscordClient, EmbedBuilder, REST, Routes } from "discord.js";
-import Command from "./Command";
-import { MessageType } from "@/types";
-import Logger from "@/services/Logger";
 
 export default class Client extends DiscordClient {
     public commands = new Collection<string, Command>();

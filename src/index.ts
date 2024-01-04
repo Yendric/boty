@@ -1,8 +1,8 @@
-import { config } from "dotenv";
-import Client from "./classes/Client";
+import Client from "@/classes/Client";
+import Logger from "@/services/Logger";
+import { getEnvVariable } from "@/utils/environment";
 import { GatewayIntentBits } from "discord.js";
-import Logger from "./services/Logger";
-import { getEnvVariable } from "./utils/environment";
+import { config } from "dotenv";
 
 config();
 

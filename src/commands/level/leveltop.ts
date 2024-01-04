@@ -1,8 +1,8 @@
-import { SlashCommandBuilder } from "discord.js";
-import GuildCommand from "@/classes/GuildCommand";
 import Client from "@/classes/Client";
+import GuildCommand from "@/classes/GuildCommand";
 import { prisma } from "@/db/db";
 import User from "@/models/User";
+import { SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder().setName("leveltop").setDescription("Toont de beste gamers."),
