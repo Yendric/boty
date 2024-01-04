@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Guild {
+  id                    String   @unique
+  autoRoleEnabled       Boolean  @default(false)
+  autoRole              String?
+  welcomeMessageEnabled Boolean  @default(false)
+  welcomeMessage        String   @default("Welkom op {{server}}, {{naam}}")
+  welcomeMessageChannel String?
+  goodbyeMessageEnabled Boolean  @default(false)
+  goodbyeMessage        String   @default("Vaarwel, {{naam}}")
+  goodbyeMessageChannel String?
+  memesEnabled          Boolean  @default(false)
+  memesChannel          String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model User {
+  id        String   @unique
+  xp        Int      @default(0)
+  messages  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
