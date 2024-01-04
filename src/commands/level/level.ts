@@ -12,7 +12,7 @@ export default new GuildCommand({
             option
                 .setName("member")
                 .setDescription("Van wie wil je het level bekijken? (Standaard: jij)")
-                .setRequired(false)
+                .setRequired(false),
         ),
     async execute(_, interaction) {
         const requestedMember = interaction.options.getMember("member") as GuildMember | null;
@@ -24,8 +24,8 @@ export default new GuildCommand({
             .setTitle(`Level info van ${member.displayName}`)
             .setDescription(
                 `Level: **${levelData.level}**
-                XP: **${levelData.xp}**
-                Berichten verzonden: **${levelData.messages}**`
+XP: **${levelData.xp}**
+Berichten verzonden: **${levelData.messages}**`,
             )
             .setThumbnail(member.user.displayAvatarURL())
             .setFooter({

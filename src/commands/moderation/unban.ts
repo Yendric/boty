@@ -9,7 +9,7 @@ export default new GuildCommand({
         .setName("unban")
         .setDescription("Unban een gebruiker.")
         .addStringOption((option) =>
-            option.setName("snowflake").setDescription("Wie moet er geunbanned worden? (snowflake)").setRequired(true)
+            option.setName("snowflake").setDescription("Wie moet er geunbanned worden? (snowflake)").setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
     async execute(client, interaction) {
@@ -25,7 +25,7 @@ export default new GuildCommand({
 
         const bannedEmbed = Client.embed(MessageType.Success).setDescription(
             `**Unbanned: ${target}**
-			**Door:** ${interaction.member}`
+**Door:** ${interaction.member}`,
         );
 
         ModerationService.generateModerationInstructions(interaction, `Wil je ${target} unbannen?`, async () => {

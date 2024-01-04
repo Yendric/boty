@@ -4,7 +4,7 @@ import { SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder().setName("info").setDescription("Info over de discord server."),
-    async execute(client, interaction) {
+    async execute(_, interaction) {
         await interaction.reply({
             embeds: [
                 Client.embed()
@@ -24,21 +24,16 @@ export default new GuildCommand({
                         },
                         {
                             name: "Online mensen:",
-                            value: `${
-                                interaction.guild.members.cache.filter(
-                                    (member) =>
-                                        !member.user.bot && (member?.presence?.status ?? "offline") !== "offline"
-                                )?.size
-                            }`,
+                            value: `${interaction.guild.members.cache.filter(
+                                (member) => !member.user.bot && (member?.presence?.status ?? "offline") !== "offline",
+                            )?.size}`,
                             inline: true,
                         },
                         {
                             name: "Offline mensen:",
-                            value: `${
-                                interaction.guild.members.cache.filter(
-                                    (member) => !member.user.bot && (member?.presence?.status ?? "offline") == "offline"
-                                )?.size
-                            }`,
+                            value: `${interaction.guild.members.cache.filter(
+                                (member) => !member.user.bot && (member?.presence?.status ?? "offline") == "offline",
+                            )?.size}`,
                             inline: true,
                         },
                         {

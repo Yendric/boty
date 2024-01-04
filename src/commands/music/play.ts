@@ -93,7 +93,7 @@ function generateSelectedEmbed(song: Song | undefined = undefined) {
     if (!song) return Client.embed().setTitle("Kies een liedje").setDescription("Er werd geen liedje gekozen.");
 
     return Client.embed()
-        .setTitle(`Toegevoegd aan queue: **${song.title}**`)
+        .setTitle(`Toegevoegd aan wachtrij: **${song.title}**`)
         .setDescription(song.url)
         .setThumbnail(song.thumbnail ?? "");
 }

@@ -55,7 +55,7 @@ export default new GuildCommand({
             }
         });
 
-        collector.on("end", async (interaction) => {
+        collector.on("end", async (_) => {
             await queueMessage.edit({ components: [] });
         });
     },
@@ -63,15 +63,15 @@ export default new GuildCommand({
 
 function generateEmbed(songs: readonly Song[]) {
     const embed = Client.embed()
-        .setTitle("Queue")
+        .setTitle("Wachtrij")
         .addFields(
             songs.map((song, index) => ({
                 name: index == 0 ? `Nu speelt: **${song.title}**` : `${index}. **${song.title}**`,
                 value: song.url,
-            }))
+            })),
         );
 
-    if (!songs.length) embed.setDescription("De queue is nu leeg.");
+    if (!songs.length) embed.setDescription("De wachtrij is nu leeg.");
 
     return embed;
 }

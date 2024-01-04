@@ -9,11 +9,11 @@ export default new GuildCommand({
         .setName("kick")
         .setDescription("Kick een gebruiker.")
         .addUserOption((option) =>
-            option.setName("target").setDescription("Wie moet er gekicked worden?").setRequired(true)
+            option.setName("target").setDescription("Wie moet er gekicked worden?").setRequired(true),
         )
         .addStringOption((option) => option.setName("reden").setDescription("Wat is de reden?").setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
-    async execute(client, interaction) {
+    async execute(_, interaction) {
         if (!interaction.guild.members.me?.permissionsIn(interaction.channel).has(PermissionFlagsBits.KickMembers))
             return interaction.reply("Ik heb hier geen toestemming voor.");
 
@@ -23,8 +23,8 @@ export default new GuildCommand({
 
         const kickedEmbed = Client.embed(MessageType.Error).setDescription(
             `**Gekickt: ${target}**
-			**Door:** ${interaction.member}
-			**Reden:** ${reason}`
+**Door:** ${interaction.member}
+**Reden:** ${reason}`,
         );
 
         ModerationService.generateModerationInstructions(interaction, `Wil je ${target} kicken?`, async () => {
