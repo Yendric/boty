@@ -1,40 +1,44 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import CommandProps from "../../types/CommandProps";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import GuildCommand from "@/classes/GuildCommand";
+import { MessageType } from "@/types";
+import Client from "@/classes/Client";
 
-export default {
-  data: new SlashCommandBuilder()
-    .setName("clear")
-    .setDescription("Verwijder een aantal berichten.")
-    .addIntegerOption((option) =>
-      option.setName("aantal").setDescription("Hoeveel berichten wil je verwijderen (1-99)?").setRequired(true)
-    ),
-  defaultPermission: false,
-  async execute(interaction: CommandInteraction, { guild, channel, options, member }: CommandProps) {
-    const hoeveelheid = options.getInteger("aantal");
-    if (!hoeveelheid || hoeveelheid < 1 || hoeveelheid > 99) return interaction.reply("Kies een getal van 1 tot 99!");
+export default new GuildCommand({
+    data: new SlashCommandBuilder()
+        .setName("clear")
+        .setDescription("Verwijder een aantal berichten.")
+        .addIntegerOption((option) =>
+            option
+                .setName("amount")
+                .setDescription("Hoeveel berichten wil je verwijderen ?")
+                .setMinValue(1)
+                .setMaxValue(99)
+                .setRequired(true)
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
+    async execute(_, interaction) {
+        const amount = interaction.options.getInteger("amount");
+        if (!amount || amount < 1 || amount > 99) return interaction.reply("Kies een getal van 1 tot 99!");
 
-    const embed = new EmbedBuilder()
-      .setTitle(`${guild.name} | Moderatie`)
-      .setTimestamp()
-      .setFooter({ text: `Opgevraagd door ${member.displayName}` });
-
-    try {
-      await channel.bulkDelete(hoeveelheid);
-      interaction.reply({
-        embeds: [
-          embed
-            .setColor("#00ff00")
-            .setDescription(`${hoeveelheid} ${hoeveelheid == 1 ? "bericht" : "berichten"} verwijderd.`),
-        ],
-      });
-      setTimeout(() => interaction.deleteReply(), 5000);
-    } catch (err) {
-      interaction.reply({
-        embeds: [
-          embed.setColor("#ff0000").setDescription("Er is iets misgegaan (zijn er berichten ouder dan 14 dagen?)."),
-        ],
-      });
-      setTimeout(() => interaction.deleteReply(), 5000);
-    }
-  },
-};
+        try {
+            await interaction.channel.bulkDelete(amount);
+            await interaction.reply({
+                embeds: [
+                    Client.embed(MessageType.Success).setDescription(
+                        `${amount} ${amount == 1 ? "bericht" : "berichten"} verwijderd.`
+                    ),
+                ],
+            });
+            setTimeout(() => interaction.deleteReply(), 5000);
+        } catch (err) {
+            await interaction.reply({
+                embeds: [
+                    Client.embed(MessageType.Error).setDescription(
+                        "Er is iets misgegaan (zijn er berichten ouder dan 14 dagen?)."
+                    ),
+                ],
+            });
+            setTimeout(() => interaction.deleteReply(), 5000);
+        }
+    },
+});

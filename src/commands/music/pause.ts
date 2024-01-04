@@ -1,13 +1,17 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
-import { pause } from "../../services/music";
-import CommandProps from "../../types/CommandProps";
+import { SlashCommandBuilder } from "discord.js";
+import { MusicRegistry } from "@/services/Music";
+import GuildCommand from "@/classes/GuildCommand";
 
-export default {
-  data: new SlashCommandBuilder().setName("pause").setDescription("Pauzeer de muziek."),
-  async execute(interaction: CommandInteraction, { guild, member }: CommandProps) {
-    if (!member.voice.channel) return interaction.reply("Je moet in een voice channel zijn om de muziek te pauzeren!");
+export default new GuildCommand({
+    data: new SlashCommandBuilder().setName("pause").setDescription("Pauzeer de muziek."),
+    async execute(_, interaction) {
+        const musicPlayer = MusicRegistry.getInstance(interaction.guild);
 
-    pause(guild);
-    interaction.reply("Muziek gepauzeerd.");
-  },
-};
+        if (!musicPlayer) return interaction.reply("Er is geen muziek aan het spelen.");
+        if (interaction.member.voice?.channel !== musicPlayer.getVoiceChannel())
+            return interaction.reply("Je bent geen muziek aan het luisteren!");
+
+        musicPlayer.pause();
+        interaction.reply("Muziek gepauzeerd.");
+    },
+});

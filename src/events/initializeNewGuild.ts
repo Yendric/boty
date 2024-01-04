@@ -1,13 +1,9 @@
-import { Guild } from "discord.js";
-import { loadCommandsForGuild } from "../services/commands";
-import { ensureSettings } from "../utils/database";
-import { log } from "../utils/logging";
+import Logger from "@/services/Logger";
+import EventHandler from "@/classes/EventHandler";
 
-export default {
-  name: "guildCreate",
-  async execute(guild: Guild) {
-    log("Guild gejoined: " + guild.name);
-    ensureSettings(guild);
-    loadCommandsForGuild(guild);
-  },
-};
+export default new EventHandler({
+    event: "guildCreate",
+    async execute(_, [guild]) {
+        Logger.log("Guild gejoind: " + guild.name);
+    },
+});

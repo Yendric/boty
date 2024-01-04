@@ -1,90 +1,35 @@
-import {
-  CommandInteraction,
-  GuildMember,
-  SlashCommandBuilder,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  PermissionFlagsBits,
-} from "discord.js";
-import CommandProps from "../../types/CommandProps";
+import { GuildMember, SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import GuildCommand from "@/classes/GuildCommand";
+import { MessageType } from "@/types";
+import ModerationService from "@/services/Moderation";
+import Client from "@/classes/Client";
 
-export default {
-  data: new SlashCommandBuilder()
-    .setName("ban")
-    .setDescription("Verban een gebruiker.")
-    .addUserOption((option) =>
-      option.setName("gebruiker").setDescription("Wie moet er verbannen worden?").setRequired(true)
-    )
-    .addStringOption((option) => option.setName("reden").setDescription("Wat is de reden?").setRequired(true)),
-  defaultPermission: false,
-  async execute(interaction: CommandInteraction, { guild, channel, options, member }: CommandProps) {
-    if (!guild.members.me?.permissionsIn(channel).has(PermissionFlagsBits.BanMembers))
-      return interaction.reply("Ik heb hier geen toestemming voor.");
+export default new GuildCommand({
+    data: new SlashCommandBuilder()
+        .setName("ban")
+        .setDescription("Verban een gebruiker.")
+        .addUserOption((option) =>
+            option.setName("target").setDescription("Wie moet er verbannen worden?").setRequired(true)
+        )
+        .addStringOption((option) => option.setName("reden").setDescription("Wat is de reden?").setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+    async execute(client, interaction) {
+        if (!interaction.guild.members.me?.permissionsIn(interaction.channel).has(PermissionFlagsBits.BanMembers))
+            return interaction.reply("Ik heb hier geen toestemming voor.");
 
-    const gebruiker = options.getMember("gebruiker") as GuildMember;
-    if (!gebruiker) return interaction.reply("Geen gebruiker opgegeven.");
-    const reden = options.getString("reden");
-    if (!reden) return interaction.reply("Geen reden opgegeven.");
+        const target = interaction.options.getMember("target") as GuildMember | null;
+        if (!target) return interaction.reply("Geen gebruiker opgegeven.");
+        const reason = interaction.options.getString("reden") || "Geen reden opgegeven.";
 
-    const banEmbed = new EmbedBuilder()
-      .setTitle(`${guild.name} | Moderatie`)
-      .setDescription(`Wil je ${gebruiker} verbannen?`)
-      .setColor("#00ff00")
-      .setFooter({ text: `Opgevraagd door ${member.displayName}` });
+        const bannedEmbed = Client.embed(MessageType.Error).setDescription(
+            `**Verbannen: ${target}**
+            **Door:** ${interaction.member}
+            **Reden:** ${reason}`
+        );
 
-    const bannedEmbed = new EmbedBuilder()
-      .setTitle(`${guild.name} | Moderatie`)
-      .setDescription(
-        `**Verbannen: ${gebruiker}**
-			**Door:** ${interaction.member}
-			**Reden:** ${reden}`
-      )
-      .setColor("#ff0000")
-      .setTimestamp()
-      .setFooter({ text: `Opgevraagd door ${member.displayName}` });
-
-    const buttons = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(new ButtonBuilder().setCustomId("akkoord").setLabel("✅").setStyle(ButtonStyle.Success))
-      .addComponents(new ButtonBuilder().setCustomId("weiger").setLabel("❌").setStyle(ButtonStyle.Danger));
-
-    interaction.reply({ embeds: [banEmbed], components: [buttons] });
-
-    const collector = channel.createMessageComponentCollector({
-      filter: (i) => i.user.id === interaction.user.id,
-      time: 10000,
-    });
-
-    collector.on("collect", async (i) => {
-      if (i.customId === "akkoord") {
-        await i.update({
-          content: "Straf wordt uigevoerd!",
-          components: [],
-          embeds: [],
+        ModerationService.generateModerationInstructions(interaction, `Wil je ${target} verbannen?`, async () => {
+            await target.ban({ reason });
+            await interaction.followUp({ embeds: [bannedEmbed] });
         });
-        try {
-          await gebruiker.ban({ reason: reden });
-          interaction.followUp({ embeds: [bannedEmbed] });
-        } catch {
-          channel.send("Ik heb geen toestemming hiervoor.");
-        }
-      } else if (i.customId === "weiger") {
-        await i.update({
-          content: "Straf geannuleerd!",
-          components: [],
-          embeds: [],
-        });
-      }
-    });
-
-    collector.on("end", async (collected) => {
-      collected.size == 0 &&
-        interaction.editReply({
-          content: "Straf geannuleerd!",
-          components: [],
-          embeds: [],
-        });
-    });
-  },
-};
+    },
+});

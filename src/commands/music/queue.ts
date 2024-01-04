@@ -1,64 +1,77 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  CommandInteraction,
-  EmbedBuilder,
-  SlashCommandBuilder,
-} from "discord.js";
-import { queues, skip, stop } from "../../services/music";
-import CommandProps from "../../types/CommandProps";
-import QueueSong from "../../types/QueueSong";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, GuildMember, SlashCommandBuilder } from "discord.js";
+import { MusicRegistry, Song } from "@/services/Music";
+import GuildCommand from "@/classes/GuildCommand";
+import Client from "@/classes/Client";
 
-export default {
-  data: new SlashCommandBuilder().setName("queue").setDescription("Bekijk de wachtrij."),
-  async execute(interaction: CommandInteraction, { guild, channel }: CommandProps) {
-    const songs = queues.get(guild)?.songs;
-    if (!songs) return interaction.reply("Geen liedjes in de queue");
+enum ButtonId {
+    Skip = "skip",
+    Stop = "stop",
+}
 
-    const buttons = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(new ButtonBuilder().setCustomId("skip").setLabel("Skip liedje").setStyle(ButtonStyle.Primary))
-      .addComponents(new ButtonBuilder().setCustomId("stop").setLabel("Stop met spelen").setStyle(ButtonStyle.Danger));
+const buttons = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(new ButtonBuilder().setCustomId(ButtonId.Skip).setLabel("Skip liedje").setStyle(ButtonStyle.Primary))
+    .addComponents(new ButtonBuilder().setCustomId(ButtonId.Stop).setLabel("Stop muziek").setStyle(ButtonStyle.Danger));
 
-    const collector = channel.createMessageComponentCollector();
+export default new GuildCommand({
+    data: new SlashCommandBuilder().setName("queue").setDescription("Bekijk de wachtrij."),
+    async execute(_, interaction) {
+        const musicPlayer = MusicRegistry.getInstance(interaction.guild);
 
-    collector.on("collect", async (i) => {
-      try {
-        if (i.customId === "skip") {
-          skip(guild);
-          i.update({
-            embeds: [generateEmbed(songs.slice(0, songs.length - 1))],
-            content: "Liedje geskipt.",
-          });
-        } else if (i.customId === "stop") {
-          stop(guild);
-          i.update({ embeds: [], content: "Muziek gestopt.", components: [] });
-        }
-      } catch (e) {
-        /* Wanneer de queue niet meer bestaat en er op een knop gedrukt wordt wordt een error gethrowd, 
-        het is echter niet meer nuttig deze aan de gebruiker te tonen, aangezien deze embed toch al niet meer up to date was. */
-        return;
-      }
-    });
+        if (!musicPlayer) return interaction.reply("Er is geen muziek aan het spelen.");
+        if (interaction.member.voice?.channel !== musicPlayer.getVoiceChannel())
+            return interaction.reply("Je bent geen muziek aan het luisteren!");
 
-    return interaction.reply({
-      embeds: [generateEmbed(songs)],
-      components: [buttons],
-    });
-  },
-};
+        const queueMessage = await interaction.reply({
+            embeds: [generateEmbed(musicPlayer.getSongs())],
+            components: [buttons],
+            fetchReply: true,
+        });
 
-function generateEmbed(songs: QueueSong[]) {
-  const embed = new EmbedBuilder().setTitle("Queue");
+        const collector = queueMessage.createMessageComponentCollector({
+            time: 60000,
+        });
 
-  if (!songs.length) return embed.setDescription("De queue is nu leeg.");
-  for (const [index, song] of songs.entries()) {
-    embed.addFields([
-      {
-        name: index == 0 ? "Nu speelt: **" + song.title + "**" : index + ". **" + song.title + "**",
-        value: song.url,
-      },
-    ]);
-  }
-  return embed;
+        collector.on("collect", async (buttonInteraction) => {
+            const musicPlayer = MusicRegistry.getInstance(interaction.guild);
+            const clickedFromChannel = (buttonInteraction.member as GuildMember)?.voice?.channel;
+
+            if (!musicPlayer || clickedFromChannel !== musicPlayer.getVoiceChannel()) {
+                buttonInteraction.reply({ content: "Je bent geen muziek aan het luisteren!", ephemeral: true });
+                return;
+            }
+
+            if (buttonInteraction.customId === ButtonId.Skip) {
+                musicPlayer.skip();
+                const songs = musicPlayer.getSongs();
+
+                buttonInteraction.update({
+                    embeds: [generateEmbed(songs)],
+                    components: songs.length ? [buttons] : [],
+                    content: "Liedje geskipt.",
+                });
+            } else if (buttonInteraction.customId === ButtonId.Stop) {
+                musicPlayer.destroy();
+                buttonInteraction.update({ content: "Muziek gestopt.", components: [], embeds: [generateEmbed([])] });
+            }
+        });
+
+        collector.on("end", async (interaction) => {
+            await queueMessage.edit({ components: [] });
+        });
+    },
+});
+
+function generateEmbed(songs: readonly Song[]) {
+    const embed = Client.embed()
+        .setTitle("Queue")
+        .addFields(
+            songs.map((song, index) => ({
+                name: index == 0 ? `Nu speelt: **${song.title}**` : `${index}. **${song.title}**`,
+                value: song.url,
+            }))
+        );
+
+    if (!songs.length) embed.setDescription("De queue is nu leeg.");
+
+    return embed;
 }

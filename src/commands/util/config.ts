@@ -1,12 +1,29 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
-import { getSettings } from "../../utils/database";
-import CommandProps from "../../types/CommandProps";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import GuildCommand from "@/classes/GuildCommand";
+import Guild from "@/models/Guild";
+import Client from "@/classes/Client";
 
-export default {
-  data: new SlashCommandBuilder().setName("config").setDescription("Toont de huidige server configuratie."),
-  defaultPermission: false,
-  async execute(interaction: CommandInteraction, { guild }: CommandProps) {
-    const settings = await getSettings(guild);
-    interaction.reply(`De huidige server configuratie: \`\`\`js\n${JSON.stringify(settings, undefined, 2)} \`\`\``);
-  },
-};
+export default new GuildCommand({
+    data: new SlashCommandBuilder()
+        .setName("config")
+        .setDescription("Toont de huidige server configuratie.")
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    async execute(_, interaction) {
+        const settings = await new Guild(interaction.guild.id).fetch();
+        interaction.reply({
+            embeds: [
+                Client.embed()
+                    .setTitle("De huidige server configuratie")
+                    .addFields(
+                        Object.entries(settings)
+                            .filter(([key]) => !["id", "createdAt", "updatedAt"].includes(key))
+                            .map(([key, value]) => ({
+                                inline: true,
+                                name: key,
+                                value: value?.toString() ?? "*(niet ingesteld)*",
+                            }))
+                    ),
+            ],
+        });
+    },
+});

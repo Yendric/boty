@@ -1,22 +1,31 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import Users from "../../models/User";
+import { SlashCommandBuilder } from "discord.js";
+import GuildCommand from "@/classes/GuildCommand";
+import Client from "@/classes/Client";
+import { prisma } from "@/db/db";
+import User from "@/models/User";
 
-export default {
-  data: new SlashCommandBuilder().setName("leveltop").setDescription("Toont de beste gamers."),
-  async execute(interaction: CommandInteraction) {
-    const points = await Users.findAll({
-      order: [["xp", "DESC"]],
-      limit: 10,
-    });
+export default new GuildCommand({
+    data: new SlashCommandBuilder().setName("leveltop").setDescription("Toont de beste gamers."),
+    async execute(_, interaction) {
+        const points = await prisma.user.findMany({
+            take: 10,
+            orderBy: {
+                xp: "desc",
+            },
+        });
 
-    const embed = new EmbedBuilder()
-      .setTitle("Leveltop")
-      .setDescription("Top 10 gamers in alle Boty servers!")
-      .setColor(0x00ae86);
+        const embed = Client.embed()
+            .setTitle("Leveltop")
+            .setDescription("Top 10 gamers in alle Boty servers!")
+            .addFields(
+                await Promise.all(
+                    points.map(async (user, index) => ({
+                        name: `#${index + 1}`,
+                        value: `<@${user.id}>: ${user.xp} XP (level ${(await new User(user.id).getLevelData()).level})`,
+                    }))
+                )
+            );
 
-    for (const [i, data] of points.entries()) {
-      embed.addFields([{ name: "#" + (i + 1), value: `<@${data.snowflake}>: ${data.xp} XP (level ${data.level})` }]);
-    }
-    return interaction.reply({ embeds: [embed] });
-  },
-};
+        return interaction.reply({ embeds: [embed] });
+    },
+});

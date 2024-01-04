@@ -1,37 +1,39 @@
-import { CommandInteraction, GuildMember, EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { getUser } from "../../utils/database";
-import CommandProps from "../../types/CommandProps";
-import { getXpData } from "../../services/level";
+import { GuildMember, SlashCommandBuilder } from "discord.js";
+import GuildCommand from "@/classes/GuildCommand";
+import User from "@/models/User";
+import Client from "@/classes/Client";
+import { generateProgressBar } from "@/utils/string";
 
-export default {
-  data: new SlashCommandBuilder()
-    .setName("level")
-    .setDescription("Bekijk het level van een gebruiker.")
-    .addUserOption((option) =>
-      option
-        .setName("gebruiker")
-        .setDescription("Van wie wil je het level bekijken? (Standaard: jij)")
-        .setRequired(false)
-    ),
-  async execute(interaction: CommandInteraction, { guild, member: interactionMember, options }: CommandProps) {
-    const gebruiker = options.getMember("gebruiker");
-    const member = (gebruiker as GuildMember) ?? interactionMember;
-    if (!member) return;
+export default new GuildCommand({
+    data: new SlashCommandBuilder()
+        .setName("level")
+        .setDescription("Bekijk het level van een gebruiker.")
+        .addUserOption((option) =>
+            option
+                .setName("member")
+                .setDescription("Van wie wil je het level bekijken? (Standaard: jij)")
+                .setRequired(false)
+        ),
+    async execute(_, interaction) {
+        const requestedMember = interaction.options.getMember("member") as GuildMember | null;
+        const member: GuildMember = requestedMember ?? interaction.member;
 
-    const user = await getUser(member.id);
-    const userXpData = getXpData(user);
+        const levelData = await new User(member.id).getLevelData();
 
-    const levelEmbed = new EmbedBuilder()
-      .setAuthor({ name: `${guild.name} | Level info van ${member.displayName}` })
-      .setDescription(
-        `Level: **${userXpData.level}**
-      XP: **${userXpData.xp}**
-      Berichten verzonden: **${userXpData.messages}**`
-      )
-      .setThumbnail(member.user.displayAvatarURL())
-      .setColor("#33aaff")
-      .setFooter({ text: `Je bent op ${userXpData.percentage}% naar level ${userXpData.level + 1}!` });
+        const levelEmbed = Client.embed()
+            .setTitle(`Level info van ${member.displayName}`)
+            .setDescription(
+                `Level: **${levelData.level}**
+                XP: **${levelData.xp}**
+                Berichten verzonden: **${levelData.messages}**`
+            )
+            .setThumbnail(member.user.displayAvatarURL())
+            .setFooter({
+                text: `Progress: ${levelData.level} ${generateProgressBar(levelData.progress, 20)} ${
+                    levelData.level + 1
+                }`,
+            });
 
-    interaction.reply({ embeds: [levelEmbed] });
-  },
-};
+        await interaction.reply({ embeds: [levelEmbed] });
+    },
+});

@@ -1,25 +1,20 @@
-import { CommandInteraction } from "discord.js";
-import { CommandExecutionError } from "../errors/CommandExecutionError";
-import { commands } from "../services/commands";
-import CommandProps from "../types/CommandProps";
+import EventHandler from "@/classes/EventHandler";
 
-export default {
-  name: "interactionCreate",
-  async execute(interaction: CommandInteraction) {
-    if (!interaction.isCommand()) return;
+export default new EventHandler({
+    event: "interactionCreate",
+    async execute(client, [interaction]) {
+        if (!interaction.isChatInputCommand()) return;
 
-    const command = commands.get(interaction.commandName);
-    if (!command) return;
+        const command = client.commands.get(interaction.commandName);
+        if (!command) return;
 
-    try {
-      await command.execute(interaction, interaction as CommandProps);
-    } catch (error) {
-      let content = "Er is iets foutsgegaan bij het uitvoeren van dit commando!";
-      if (error instanceof CommandExecutionError) content = error.message;
-      await interaction.reply({
-        content,
-        ephemeral: true,
-      });
-    }
-  },
-};
+        try {
+            await command.execute(client, interaction);
+        } catch (error) {
+            await interaction.channel?.send({
+                content: "Er is iets foutsgegaan bij het uitvoeren van dit commando!",
+            });
+            throw error;
+        }
+    },
+});

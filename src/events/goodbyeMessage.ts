@@ -1,30 +1,31 @@
-import { ChannelType, EmbedBuilder, GuildMember } from "discord.js";
-import { getSettings } from "../utils/database";
+import { ChannelType } from "discord.js";
+import EventHandler from "@/classes/EventHandler";
+import { MessageType } from "@/types";
+import Client from "@/classes/Client";
+import Guild from "@/models/Guild";
 
-export default {
-  name: "guildMemberRemove",
-  async execute(member: GuildMember) {
-    const serverSettings = await getSettings(member.guild);
+export default new EventHandler({
+    event: "guildMemberRemove",
+    async execute(_, [member]) {
+        const settings = await new Guild(member.guild.id).fetch();
 
-    if (serverSettings.goodbyeMessageEnabled && serverSettings.goodbyeMessage && serverSettings.goodbyeMessageChannel) {
-      const goodbyeMessage = serverSettings.goodbyeMessage
-        .replace("{{naam}}", `${member}`)
-        .replace("{{server}}", member.guild.name);
+        if (!settings.goodbyeMessageEnabled || !settings.goodbyeMessage || !settings.goodbyeMessageChannel) return;
 
-      const goodbyeMessageChannel = member.guild.channels.cache.get(serverSettings.goodbyeMessageChannel);
-      if (!goodbyeMessageChannel || goodbyeMessageChannel.type !== ChannelType.GuildText) return;
+        const goodbyeMessage = settings.goodbyeMessage
+            .replace("{{naam}}", `${member}`)
+            .replace("{{server}}", member.guild.name);
 
-      goodbyeMessageChannel.send({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle(`${member.guild.name}`)
-            .setColor("#ff0000")
-            .setDescription(goodbyeMessage)
-            .setThumbnail(`${member.user.displayAvatarURL()}`)
-            .setTimestamp(new Date())
-            .setFooter({ text: `Er zijn nu ${member.guild.memberCount} leden!` }),
-        ],
-      });
-    }
-  },
-};
+        const goodbyeMessageChannel = member.guild.channels.cache.get(settings.goodbyeMessageChannel);
+        if (!goodbyeMessageChannel || goodbyeMessageChannel.type !== ChannelType.GuildText) return;
+
+        goodbyeMessageChannel.send({
+            embeds: [
+                Client.embed(MessageType.Error)
+                    .setTitle(`${member.guild.name}`)
+                    .setDescription(goodbyeMessage)
+                    .setThumbnail(`${member.user.displayAvatarURL()}`)
+                    .setFooter({ text: `Er zijn nu ${member.guild.memberCount} leden!` }),
+            ],
+        });
+    },
+});

@@ -1,9 +1,9 @@
-import { Guild } from "discord.js";
-import { log } from "../utils/logging";
+import EventHandler from "@/classes/EventHandler";
+import Logger from "@/services/Logger";
 
-export default {
-  name: "guildDelete",
-  async execute(guild: Guild) {
-    log("Guild verlaten: " + guild.name);
-  },
-};
+export default new EventHandler({
+    event: "guildDelete",
+    async execute(_, [guild]) {
+        Logger.log("Guild verlaten: " + guild.name);
+    },
+});

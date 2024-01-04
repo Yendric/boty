@@ -1,34 +1,39 @@
-import { ChannelType, EmbedBuilder, Message } from "discord.js";
-import { addXp } from "../services/level";
-import { getUser } from "../utils/database";
+import { ChannelType, Snowflake } from "discord.js";
+import EventHandler from "@/classes/EventHandler";
+import Client from "@/classes/Client";
+import User from "@/models/User";
+import { calculateLevelFromXp } from "@/utils/levels";
 
-const xpCooldown = new Set();
+const xpCooldown: Set<Snowflake> = new Set();
 
-export default {
-  name: "messageCreate",
-  async execute(message: Message) {
-    if (message.author.bot) return;
-    if (message.channel.type == ChannelType.DM) return;
-    if (!message.guild) return;
+export default new EventHandler({
+    event: "messageCreate",
+    async execute(_, [message]) {
+        if (message.author.bot || !message.guild || message.channel.type == ChannelType.DM) return;
+        if (xpCooldown.has(message.author.id)) return;
 
-    if (!xpCooldown.has(message.author.id)) {
-      const user = await getUser(message.author.id);
-      const userXpData = addXp(user);
+        const user = new User(message.author.id);
+        const { xp } = await user.fetch();
 
-      if (userXpData.levelUp) {
-        message.channel.send({
-          embeds: [
-            new EmbedBuilder()
-              .setAuthor({ name: "Level up!" })
-              .setColor("#33AAFF")
-              .setThumbnail(message.author.displayAvatarURL())
-              .setDescription(`Nieuw level: **${userXpData.level}**`)
-              .setFooter({ text: "Woop Woop!" }),
-          ],
-        });
-      }
-      xpCooldown.add(message.author.id);
-      setTimeout(() => xpCooldown.delete(message.author.id), 5000);
-    }
-  },
-};
+        const oldLevel = calculateLevelFromXp(xp);
+        const randomXp = Math.floor(Math.random() * 13) + 1;
+        await user.incrementMessages();
+        await user.incrementXp(randomXp); // Random number in [1,13]
+        const newLevel = calculateLevelFromXp(xp + randomXp);
+
+        if (oldLevel != newLevel) {
+            message.channel.send({
+                embeds: [
+                    Client.embed()
+                        .setTitle("Level up!")
+                        .setThumbnail(message.author.displayAvatarURL())
+                        .setDescription(`Nieuw level: **${newLevel}**`)
+                        .setFooter({ text: "Woop Woop!" }),
+                ],
+            });
+        }
+
+        xpCooldown.add(message.author.id);
+        setTimeout(() => xpCooldown.delete(message.author.id), 5000);
+    },
+});

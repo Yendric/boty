@@ -1,41 +1,28 @@
-import { ActivityType, Client, GatewayIntentBits } from "discord.js";
 import { config } from "dotenv";
-import { loadCommands } from "./services/commands";
-import { loadEvents } from "./services/events";
-import { loadDebugLogger } from "./services/debug";
-import { loadDatabase } from "./services/database";
-import { log } from "./utils/logging";
+import Client from "./classes/Client";
+import { GatewayIntentBits } from "discord.js";
+import Logger from "./services/Logger";
+import { getEnvVariable } from "./utils/environment";
 
 config();
 
-export const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildModeration,
-    GatewayIntentBits.GuildEmojisAndStickers,
-    GatewayIntentBits.GuildIntegrations,
-    GatewayIntentBits.GuildWebhooks,
-    GatewayIntentBits.GuildInvites,
-    GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildPresences,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildMessageTyping,
-    GatewayIntentBits.DirectMessages,
-    GatewayIntentBits.DirectMessageReactions,
-    GatewayIntentBits.DirectMessageTyping,
-  ],
+const BOT_TOKEN = getEnvVariable("BOT_TOKEN");
+
+export const client = new Client(BOT_TOKEN, {
+    intents: [
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.MessageContent,
+    ],
 });
 
-client.once("ready", () => {
-  loadDebugLogger();
-  loadDatabase();
-  loadCommands();
-  loadEvents();
-  log(`${client.user?.username} is online op ${client.guilds.cache.size} server(s)!`);
-  client.user?.setActivity("jou", { type: ActivityType.Watching });
-});
+if (process.env.debug) {
+    client.on("error", (err) => Logger.error(`[DEBUG] djserror: ${err.message}`));
+    client.on("warn", (err) => Logger.error(`[DEBUG] djswarn: ${err}`));
+}
 
-client.login(process.env.TOKEN);
+process.on("uncaughtException", function (err) {
+    Logger.error(`Uncaught exception (recovered): ${err.stack}`);
+});

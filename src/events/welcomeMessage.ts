@@ -1,30 +1,31 @@
-import { ChannelType, EmbedBuilder, GuildMember } from "discord.js";
-import { getSettings } from "../utils/database";
+import { ChannelType } from "discord.js";
+import EventHandler from "@/classes/EventHandler";
+import Client from "@/classes/Client";
+import { MessageType } from "@/types";
+import Guild from "@/models/Guild";
 
-export default {
-  name: "guildMemberAdd",
-  async execute(member: GuildMember) {
-    const serverSettings = await getSettings(member.guild);
+export default new EventHandler({
+    event: "guildMemberAdd",
+    async execute(_, [member]) {
+        const settings = await new Guild(member.guild.id).fetch();
 
-    if (serverSettings.welcomeMessageEnabled && serverSettings.welcomeMessage && serverSettings.welcomeMessageChannel) {
-      const welcomeMessage = serverSettings.welcomeMessage
-        .replace("{{naam}}", `${member}`)
-        .replace("{{server}}", member.guild.name);
+        if (!settings.welcomeMessageEnabled || !settings.welcomeMessage || !settings.welcomeMessageChannel) return;
 
-      const welcomeMessageChannel = member.guild.channels.cache.get(serverSettings.welcomeMessageChannel);
-      if (!welcomeMessageChannel || welcomeMessageChannel.type !== ChannelType.GuildText) return;
+        const welcomeMessage = settings.welcomeMessage
+            .replace("{{naam}}", `${member}`)
+            .replace("{{server}}", member.guild.name);
 
-      welcomeMessageChannel.send({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle(`${member.guild.name}`)
-            .setColor("#00ff00")
-            .setDescription(welcomeMessage)
-            .setThumbnail(`${member.user.displayAvatarURL()}`)
-            .setTimestamp()
-            .setFooter({ text: `Er zijn nu ${member.guild.memberCount} leden!` }),
-        ],
-      });
-    }
-  },
-};
+        const welcomeMessageChannel = member.guild.channels.cache.get(settings.welcomeMessageChannel);
+        if (!welcomeMessageChannel || welcomeMessageChannel.type !== ChannelType.GuildText) return;
+
+        welcomeMessageChannel.send({
+            embeds: [
+                Client.embed(MessageType.Success)
+                    .setTitle(`${member.guild.name}`)
+                    .setDescription(welcomeMessage)
+                    .setThumbnail(`${member.user.displayAvatarURL()}`)
+                    .setFooter({ text: `Er zijn nu ${member.guild.memberCount} leden!` }),
+            ],
+        });
+    },
+});

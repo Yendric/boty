@@ -1,20 +1,19 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
-import CommandProps from "../../types/CommandProps";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import GuildCommand from "@/classes/GuildCommand";
 
-export default {
-  data: new SlashCommandBuilder()
-    .setName("say")
-    .setDescription("Laat de bot iets zeggen.")
-    .addStringOption((option) =>
-      option.setName("bericht").setDescription("Wat wil je me laten zeggen?").setRequired(true)
-    ),
-  defaultPermission: false,
-  async execute(interaction: CommandInteraction, { channel, options }: CommandProps) {
-    const bericht = options.getString("bericht");
-    if (!bericht) return;
+export default new GuildCommand({
+    data: new SlashCommandBuilder()
+        .setName("say")
+        .setDescription("Laat de bot iets zeggen.")
+        .addStringOption((option) =>
+            option.setName("message").setDescription("Wat wil je me laten zeggen?").setRequired(true)
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
+    async execute(_, interaction) {
+        const message = interaction.options.getString("message");
+        if (!message) return;
 
-    interaction.reply("Actie wordt uitgevoerd...");
-    channel.send(bericht);
-    interaction.deleteReply();
-  },
-};
+        await interaction.reply({ content: "Actie wordt uitgevoerd...", ephemeral: true });
+        await interaction.channel.send(message);
+    },
+});
