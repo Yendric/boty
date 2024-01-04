@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+    boty:
+        container_name: boty
+        stdin_open: true
+        build:
+            context: .
+            target: development
+        volumes:
+            - ./:/usr/src/app
+            - /usr/src/node_modules

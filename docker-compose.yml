@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+    boty:
+        container_name: boty
+        image: yendric/boty:main
+        restart: always
+        volumes:
+            - ./database.db:/usr/src/app/prisma/database.db
+        env_file:
+            - .env
