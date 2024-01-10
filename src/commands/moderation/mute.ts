@@ -7,7 +7,7 @@ export default new GuildCommand({
         .setName("mute")
         .setDescription("Mute een gebruiker.")
         .addUserOption((option) =>
-            option.setName("target").setDescription("Wie moet er gekicked worden?").setRequired(true)
+            option.setName("target").setDescription("Wie moet er gemuted worden?").setRequired(true),
         )
         .addStringOption((option) => option.setName("duration").setDescription("Hoe lang?").setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
