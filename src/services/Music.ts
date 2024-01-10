@@ -10,7 +10,7 @@ import {
     createAudioPlayer,
     createAudioResource,
     entersState,
-    joinVoiceChannel
+    joinVoiceChannel,
 } from "@discordjs/voice";
 import { Guild, Snowflake, TextChannel, VoiceBasedChannel } from "discord.js";
 import search from "youtube-search";
@@ -49,6 +49,7 @@ export class MusicPlayer {
     private songs: Song[] = [];
     private connection: VoiceConnection;
     private player: AudioPlayer;
+    private isLooping = false;
 
     public constructor(guild: Guild, voiceChannel: VoiceBasedChannel, textChannel: TextChannel) {
         this.textChannel = textChannel;
@@ -62,7 +63,8 @@ export class MusicPlayer {
         this.connection.subscribe(this.player);
 
         this.player.on(AudioPlayerStatus.Idle, () => {
-            this.songs.shift();
+            if (!this.isLooping) this.songs.shift();
+
             this.play();
         });
 
@@ -129,6 +131,14 @@ export class MusicPlayer {
 
     public resume() {
         this.player.unpause();
+    }
+
+    public toggleLooping() {
+        this.isLooping = !this.isLooping;
+    }
+
+    public getLooping() {
+        return this.isLooping;
     }
 
     public destroy() {

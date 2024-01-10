@@ -1,6 +1,6 @@
 import Client from "@/classes/Client";
 import GuildCommand from "@/classes/GuildCommand";
-import { MusicRegistry, Song } from "@/services/Music";
+import { MusicPlayer, MusicRegistry, Song } from "@/services/Music";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, GuildMember, SlashCommandBuilder } from "discord.js";
 
 enum ButtonId {
@@ -22,7 +22,7 @@ export default new GuildCommand({
             return interaction.reply("Je bent geen muziek aan het luisteren!");
 
         const queueMessage = await interaction.reply({
-            embeds: [generateEmbed(musicPlayer.getSongs())],
+            embeds: [generateEmbed(musicPlayer.getSongs(), musicPlayer)],
             components: [buttons],
             fetchReply: true,
         });
@@ -45,13 +45,17 @@ export default new GuildCommand({
                 const songs = musicPlayer.getSongs();
 
                 buttonInteraction.update({
-                    embeds: [generateEmbed(songs)],
+                    embeds: [generateEmbed(songs, musicPlayer)],
                     components: songs.length ? [buttons] : [],
                     content: "Liedje geskipt.",
                 });
             } else if (buttonInteraction.customId === ButtonId.Stop) {
                 musicPlayer.destroy();
-                buttonInteraction.update({ content: "Muziek gestopt.", components: [], embeds: [generateEmbed([])] });
+                buttonInteraction.update({
+                    content: "Muziek gestopt.",
+                    components: [],
+                    embeds: [generateEmbed([], musicPlayer)],
+                });
             }
         });
 
@@ -61,12 +65,15 @@ export default new GuildCommand({
     },
 });
 
-function generateEmbed(songs: readonly Song[]) {
+function generateEmbed(songs: readonly Song[], musicPlayer: MusicPlayer) {
     const embed = Client.embed()
         .setTitle("Wachtrij")
         .addFields(
             songs.map((song, index) => ({
-                name: index == 0 ? `Nu speelt: **${song.title}**` : `${index}. **${song.title}**`,
+                name:
+                    index == 0
+                        ? `Nu speelt${loopStatus(musicPlayer)}: **${song.title}** `
+                        : `${index}. **${song.title}**`,
                 value: song.url,
             })),
         );
@@ -74,4 +81,8 @@ function generateEmbed(songs: readonly Song[]) {
     if (!songs.length) embed.setDescription("De wachtrij is nu leeg.");
 
     return embed;
+}
+
+function loopStatus(musicPlayer: MusicPlayer) {
+    return musicPlayer.getLooping() ? " [LOOP!]" : "";
 }
