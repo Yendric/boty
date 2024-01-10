@@ -6,9 +6,11 @@ import {
     AudioPlayerStatus,
     StreamType,
     VoiceConnection,
+    VoiceConnectionStatus,
     createAudioPlayer,
     createAudioResource,
-    joinVoiceChannel,
+    entersState,
+    joinVoiceChannel
 } from "@discordjs/voice";
 import { Guild, Snowflake, TextChannel, VoiceBasedChannel } from "discord.js";
 import search from "youtube-search";
@@ -43,14 +45,12 @@ export class MusicRegistry {
 }
 
 export class MusicPlayer {
-    private voiceChannel: VoiceBasedChannel;
     private textChannel: TextChannel;
     private songs: Song[] = [];
     private connection: VoiceConnection;
     private player: AudioPlayer;
 
     public constructor(guild: Guild, voiceChannel: VoiceBasedChannel, textChannel: TextChannel) {
-        this.voiceChannel = voiceChannel;
         this.textChannel = textChannel;
         this.connection = joinVoiceChannel({
             channelId: voiceChannel.id,
@@ -64,6 +64,19 @@ export class MusicPlayer {
         this.player.on(AudioPlayerStatus.Idle, () => {
             this.songs.shift();
             this.play();
+        });
+
+        this.connection.on(VoiceConnectionStatus.Disconnected, async (_old, _new) => {
+            try {
+                // Check if we were moved to a different channel
+                await Promise.race([
+                    entersState(this.connection, VoiceConnectionStatus.Signalling, 5_000),
+                    entersState(this.connection, VoiceConnectionStatus.Connecting, 5_000),
+                ]);
+            } catch (error) {
+                // We were disconnected :(
+                this.destroy();
+            }
         });
     }
 
@@ -80,7 +93,7 @@ export class MusicPlayer {
     }
 
     public getVoiceChannel() {
-        return this.voiceChannel;
+        return this.textChannel.guild.members.me?.voice.channel;
     }
 
     public getTextChannel() {
@@ -123,13 +136,11 @@ export class MusicPlayer {
         this.connection.destroy();
         this.player.stop();
 
-        MusicRegistry.destroyInstance(this.voiceChannel.guild);
+        MusicRegistry.destroyInstance(this.textChannel.guild);
     }
 
     public skip() {
         this.player.stop();
-        this.songs.shift();
-        this.play();
     }
 
     public async fetchSongs(queryOrUrl: string): Promise<Song[]> {
