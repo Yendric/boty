@@ -14,7 +14,7 @@ export function generateProgressBar(progress: number, length: number) {
     const filled = Math.round(progress * length);
     const emptied = length - filled;
 
-    return `${"▇".repeat(filled)}${"—".repeat(emptied)}`;
+    return `${"🟩".repeat(filled)}${"🟥".repeat(emptied)}`;
 }
 
 // Source: https://stackoverflow.com/questions/44195322/
