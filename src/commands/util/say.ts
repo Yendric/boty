@@ -1,4 +1,5 @@
 import GuildCommand from "@/classes/GuildCommand";
+import Logger from "@/services/Logger";
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
@@ -6,7 +7,7 @@ export default new GuildCommand({
         .setName("say")
         .setDescription("Laat de bot iets zeggen.")
         .addStringOption((option) =>
-            option.setName("message").setDescription("Wat wil je me laten zeggen?").setRequired(true)
+            option.setName("message").setDescription("Wat wil je me laten zeggen?").setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
     async execute(_, interaction) {
@@ -15,5 +16,8 @@ export default new GuildCommand({
 
         await interaction.reply({ content: "Actie wordt uitgevoerd...", ephemeral: true });
         await interaction.channel.send(message);
+        Logger.info(
+            `[SAY] "${interaction.user.username}" in "${interaction.channel.name}" (${interaction.guild.name}): "${message}"`,
+        );
     },
 });
