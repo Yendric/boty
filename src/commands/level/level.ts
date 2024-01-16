@@ -29,7 +29,7 @@ Berichten verzonden: **${levelData.messages}**`,
             )
             .setThumbnail(member.user.displayAvatarURL())
             .setFooter({
-                text: `Progress: ${levelData.level} ${generateProgressBar(levelData.progress, 20)} ${
+                text: `Progress: ${levelData.level} ${generateProgressBar(levelData.progress, 15)} ${
                     levelData.level + 1
                 }`,
             });
