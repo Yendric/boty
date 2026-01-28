@@ -1,6 +1,4 @@
 import Client from "@/classes/Client";
-import { getEnvVariable } from "@/utils/environment";
-import { htmlDecode } from "@/utils/string";
 import {
     AudioPlayer,
     AudioPlayerStatus,
@@ -13,18 +11,31 @@ import {
     entersState,
     joinVoiceChannel,
 } from "@discordjs/voice";
-import ytdl from "@distube/ytdl-core";
 import { Guild, Snowflake, TextChannel, VoiceBasedChannel } from "discord.js";
-import search from "youtube-search";
+import { Readable } from "stream";
+import Innertube, { UniversalCache } from "youtubei.js";
 
 export interface Song {
     title: string;
     url: string;
+    id: string;
     thumbnail?: string;
+    duration?: string;
 }
 
 export class MusicRegistry {
     static registry: Map<Snowflake, MusicPlayer> = new Map();
+    static youtubeClient: Innertube | null = null;
+
+    static async getYoutubeClient() {
+        if (!this.youtubeClient) {
+            this.youtubeClient = await Innertube.create({
+                cache: new UniversalCache(false),
+                generate_session_locally: true
+            });
+        }
+        return this.youtubeClient;
+    }
 
     static getInstance(guild: Guild) {
         return this.registry.get(guild.id);
@@ -92,7 +103,7 @@ export class MusicPlayer {
     }
 
     public getSongs() {
-        return Object.freeze([...this.songs]); // Prevent the original array from being modified
+        return Object.freeze([...this.songs]);
     }
 
     public getVoiceChannel() {
@@ -103,27 +114,43 @@ export class MusicPlayer {
         return this.textChannel;
     }
 
-    public play() {
+    public async play() {
         if (!this.songs[0]) return this.destroy();
         const song = this.songs[0];
-        const stream = ytdl(song.url, {
-            filter: "audioonly",
-            quality: "highestaudio",
-            highWaterMark: 1048576 * 32, // 32MB buffer
-        });
-        const resource = createAudioResource(stream, {
-            inputType: StreamType.Arbitrary,
-        });
-        this.player.play(resource);
+        try {
+            const yt = await MusicRegistry.getYoutubeClient();
 
-        this.textChannel.send({
-            embeds: [
-                Client.embed()
-                    .setTitle(`Nu speelt: **${song.title}**`)
-                    .setDescription(song.url)
-                    .setThumbnail(song.thumbnail ?? null),
-            ],
-        });
+            const stream = await yt.download(song.id, {
+                type: 'audio',
+                quality: 'best',
+                format: 'mp4',
+                client: 'ANDROID' // bypasses age gating better than web
+            });
+
+            const nodeStream = Readable.fromWeb(stream as any);
+
+            const resource = createAudioResource(nodeStream, {
+                inputType: StreamType.Arbitrary,
+                inlineVolume: true
+            });
+
+            this.player.play(resource);
+
+            this.textChannel.send({
+                embeds: [
+                    Client.embed()
+                        .setTitle(`Nu speelt: **${song.title}**`)
+                        .setDescription(song.url)
+                        .setThumbnail(song.thumbnail ?? null)
+                        .setFooter({ text: `Duur: ${song.duration}` })
+                ],
+            });
+        } catch (error) {
+            console.error("Play error:", error);
+            this.textChannel.send(`Afspelen van **${song.title}** mislukt. Overslaan...`);
+            this.songs.shift();
+            this.play();
+        }
     }
 
     public pause() {
@@ -155,27 +182,39 @@ export class MusicPlayer {
     }
 
     public async fetchSongs(queryOrUrl: string): Promise<Song[]> {
-        if (ytdl.validateURL(queryOrUrl)) {
-            const songInfo = await ytdl.getInfo(queryOrUrl);
-            return [
-                {
-                    title: htmlDecode(songInfo.videoDetails.title),
-                    url: songInfo.videoDetails.video_url,
-                    thumbnail: songInfo.videoDetails.thumbnails[0]?.url,
-                },
-            ];
-        } else {
-            const { results } = await search(queryOrUrl, {
-                type: "video",
-                maxResults: 3, // This isn't always respected, so we slice the array later
-                key: getEnvVariable("YOUTUBE_API_KEY"),
-            });
+        const yt = await MusicRegistry.getYoutubeClient();
 
-            return results.slice(0, 3).map((song) => ({
-                title: htmlDecode(song.title),
-                url: song.link,
-                thumbnail: song.thumbnails.default?.url,
-            }));
+        try {
+            if (queryOrUrl.includes("youtube.com/watch") || queryOrUrl.includes("youtu.be/")) {
+                const videoId = queryOrUrl.split('v=')[1]?.split('&')[0] || queryOrUrl.split('/').pop();
+                if (!videoId) throw new Error("Invalid ID");
+
+                const info = await yt.getBasicInfo(videoId);
+
+                return [{
+                    title: info.basic_info.title || "Unknown",
+                    url: `https://www.youtube.com/watch?v=${info.basic_info.id}`,
+                    id: info.basic_info.id as string,
+                    thumbnail: info.basic_info.thumbnail?.[0]?.url,
+                    duration: info.basic_info.duration ? String(info.basic_info.duration) : "N/A"
+                }];
+            }
+            else {
+                const searchResult = await yt.search(queryOrUrl, { type: 'video' });
+
+                const videos = searchResult.videos.slice(0, 3);
+
+                return videos.map((vid: any) => ({
+                    title: vid.title.text || "Unknown",
+                    url: `https://www.youtube.com/watch?v=${vid.id}`,
+                    id: vid.id,
+                    thumbnail: vid.thumbnails[0]?.url,
+                    duration: vid.duration?.text || "N/A"
+                }));
+            }
+        } catch (e) {
+            console.error("Fetch Error:", e);
+            return [];
         }
     }
 }
