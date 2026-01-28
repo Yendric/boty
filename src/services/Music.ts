@@ -4,6 +4,7 @@ import { htmlDecode } from "@/utils/string";
 import {
     AudioPlayer,
     AudioPlayerStatus,
+    DiscordGatewayAdapterCreator,
     StreamType,
     VoiceConnection,
     VoiceConnectionStatus,
@@ -56,7 +57,7 @@ export class MusicPlayer {
         this.connection = joinVoiceChannel({
             channelId: voiceChannel.id,
             guildId: guild.id,
-            adapterCreator: guild.voiceAdapterCreator,
+            adapterCreator: guild.voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator,
         });
         this.player = createAudioPlayer();
 

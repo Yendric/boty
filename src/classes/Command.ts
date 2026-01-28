@@ -1,13 +1,13 @@
 import { CommandExecutor } from "@/types";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandOptionsOnlyBuilder } from "discord.js";
 
 interface CommandOptions {
-    data: SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
+    data: SlashCommandOptionsOnlyBuilder;
     execute: CommandExecutor;
 }
 
 export default class Command {
-    public data: SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
+    public data: SlashCommandOptionsOnlyBuilder;
     public execute: CommandExecutor;
 
     constructor({ data, execute }: CommandOptions) {

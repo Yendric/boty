@@ -11,9 +11,11 @@ export default new EventHandler({
         try {
             await command.execute(client, interaction);
         } catch (error) {
-            await interaction.channel?.send({
-                content: "Er is iets foutsgegaan bij het uitvoeren van dit commando!",
-            });
+            if (interaction.channel?.isSendable()) {
+                await interaction.channel.send({
+                    content: "Er is iets foutsgegaan bij het uitvoeren van dit commando!",
+                });
+            }
             throw error;
         }
     },

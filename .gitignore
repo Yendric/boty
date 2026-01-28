@@ -4,3 +4,4 @@ prisma/database.db
 prisma/database.db-journal
 dist
 coverage
+.pnpm-store
