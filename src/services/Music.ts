@@ -13,9 +13,9 @@ import {
     entersState,
     joinVoiceChannel,
 } from "@discordjs/voice";
+import ytdl from "@distube/ytdl-core";
 import { Guild, Snowflake, TextChannel, VoiceBasedChannel } from "discord.js";
 import search from "youtube-search";
-import ytdl from "ytdl-core";
 
 export interface Song {
     title: string;
