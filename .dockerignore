@@ -1,0 +1,18 @@
+# Nooit in de image: secrets en lokale data
+.env
+prisma/database.db
+prisma/database.db-journal
+
+# Build- en installatie-artefacten (worden in de container opnieuw gemaakt)
+node_modules
+dist
+.pnpm-store
+
+# Ontwikkelspullen
+.git
+.github
+.claude
+.vscode
+Dockerfile
+docker-compose*.yml
+README.md
