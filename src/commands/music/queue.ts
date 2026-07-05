@@ -1,7 +1,14 @@
 import Client from "@/classes/Client";
 import GuildCommand from "@/classes/GuildCommand";
 import { MusicPlayer, MusicRegistry, Song } from "@/services/Music";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, GuildMember, SlashCommandBuilder } from "discord.js";
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    GuildMember,
+    MessageFlags,
+    SlashCommandBuilder,
+} from "discord.js";
 
 enum ButtonId {
     Skip = "skip",
@@ -18,13 +25,12 @@ export default new GuildCommand({
         const musicPlayer = MusicRegistry.getInstance(interaction.guild);
 
         if (!musicPlayer) return interaction.reply("Er is geen muziek aan het spelen.");
-        if (interaction.member.voice?.channel !== musicPlayer.getVoiceChannel())
+        if (interaction.member.voice.channel !== musicPlayer.getVoiceChannel())
             return interaction.reply("Je bent geen muziek aan het luisteren!");
 
         const queueMessage = await interaction.reply({
             embeds: [generateEmbed(musicPlayer.getSongs(), musicPlayer)],
             components: [buttons],
-            fetchReply: true,
         });
 
         const collector = queueMessage.createMessageComponentCollector({
@@ -33,10 +39,14 @@ export default new GuildCommand({
 
         collector.on("collect", async (buttonInteraction) => {
             const musicPlayer = MusicRegistry.getInstance(interaction.guild);
-            const clickedFromChannel = (buttonInteraction.member as GuildMember)?.voice?.channel;
+            const clickedFromChannel =
+                buttonInteraction.member instanceof GuildMember ? buttonInteraction.member.voice.channel : null;
 
             if (!musicPlayer || clickedFromChannel !== musicPlayer.getVoiceChannel()) {
-                buttonInteraction.reply({ content: "Je bent geen muziek aan het luisteren!", ephemeral: true });
+                await buttonInteraction.reply({
+                    content: "Je bent geen muziek aan het luisteren!",
+                    flags: MessageFlags.Ephemeral,
+                });
                 return;
             }
 
@@ -44,14 +54,14 @@ export default new GuildCommand({
                 musicPlayer.skip();
                 const songs = musicPlayer.getSongs();
 
-                buttonInteraction.update({
+                await buttonInteraction.update({
                     embeds: [generateEmbed(songs, musicPlayer)],
                     components: songs.length ? [buttons] : [],
                     content: "Liedje geskipt.",
                 });
             } else if (buttonInteraction.customId === ButtonId.Stop) {
                 musicPlayer.destroy();
-                buttonInteraction.update({
+                await buttonInteraction.update({
                     content: "Muziek gestopt.",
                     components: [],
                     embeds: [generateEmbed([], musicPlayer)],
@@ -59,8 +69,8 @@ export default new GuildCommand({
             }
         });
 
-        collector.on("end", async (_) => {
-            await queueMessage.edit({ components: [] });
+        collector.on("end", async () => {
+            await interaction.editReply({ components: [] }).catch(() => undefined);
         });
     },
 });

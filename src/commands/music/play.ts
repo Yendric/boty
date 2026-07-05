@@ -1,36 +1,40 @@
 import Client from "@/classes/Client";
 import GuildCommand from "@/classes/GuildCommand";
 import { MusicRegistry, Song } from "@/services/Music";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, TextChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder()
         .setName("play")
         .setDescription("Speel een liedje.")
         .addStringOption((option) =>
-            option.setName("liedje").setDescription("Welk liedje moet er gespeeld worden?").setRequired(true)
+            option.setName("liedje").setDescription("Welk liedje moet er gespeeld worden?").setRequired(true),
         ),
     async execute(_, interaction) {
-        const voiceChannel = interaction.member.voice?.channel;
-        if (!voiceChannel) return interaction.reply("Je moet in een voicechannel zitten!");
+        const voiceChannel = interaction.member.voice.channel;
+        if (!voiceChannel) {
+            return interaction.reply({ content: "Je moet in een voicechannel zitten!", flags: MessageFlags.Ephemeral });
+        }
+        if (!interaction.channel.isTextBased()) {
+            return interaction.reply({
+                content: "Dit commando werkt alleen in een tekstkanaal.",
+                flags: MessageFlags.Ephemeral,
+            });
+        }
 
-        const musicPlayer = MusicRegistry.getOrCreate(
-            interaction.guild,
-            voiceChannel,
-            interaction.channel as TextChannel
-        );
+        await interaction.deferReply();
 
-        const searchQueryOrURI = interaction.options.getString("liedje");
-        const songs = await musicPlayer.fetchSongs(searchQueryOrURI ?? "");
-        if (songs.length === 0) return interaction.reply("Geen liedjes gevonden!");
+        const textChannel = interaction.channel;
+        const songs = await MusicRegistry.fetchSongs(interaction.options.getString("liedje", true));
+
+        if (songs.length === 0) return interaction.editReply("Geen liedjes gevonden!");
+
+        const addSong = (song: Song) =>
+            MusicRegistry.getOrCreate(interaction.guild, voiceChannel, textChannel).addSong(song);
 
         if (songs.length === 1 && songs[0]) {
-            await interaction.reply({
-                embeds: [generateSelectedEmbed(songs[0])],
-                components: [],
-            });
-
-            return await musicPlayer.addSong(songs[0]);
+            await interaction.editReply({ embeds: [generateSelectedEmbed(songs[0])] });
+            return addSong(songs[0]);
         }
 
         const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -38,22 +42,21 @@ export default new GuildCommand({
                 new ButtonBuilder()
                     .setCustomId(`song-${index}`)
                     .setLabel((index + 1).toString())
-                    .setStyle(ButtonStyle.Primary)
+                    .setStyle(ButtonStyle.Primary),
             ),
-            new ButtonBuilder().setCustomId("cancel").setLabel("❌").setStyle(ButtonStyle.Danger)
+            new ButtonBuilder().setCustomId("cancel").setLabel("❌").setStyle(ButtonStyle.Danger),
         );
 
-        const songsMessage = await interaction.reply({
+        const songsMessage = await interaction.editReply({
             embeds: [
                 Client.embed()
                     .setTitle(`${songs.length} liedjes gevonden!`)
                     .setDescription("Kies een liedje om te spelen.")
                     .addFields(
-                        songs.map((song, index) => ({ name: `**${index + 1}.** ${song.title}`, value: song.url }))
+                        songs.map((song, index) => ({ name: `**${index + 1}.** ${song.title}`, value: song.url })),
                     ),
             ],
             components: [buttons],
-            fetchReply: true,
         });
 
         const collector = songsMessage.createMessageComponentCollector({
@@ -63,6 +66,7 @@ export default new GuildCommand({
 
         collector.on("collect", async (buttonInteraction) => {
             if (buttonInteraction.customId === "cancel") {
+                await buttonInteraction.deferUpdate();
                 return collector.stop("cancelled");
             }
 
@@ -75,15 +79,17 @@ export default new GuildCommand({
                 components: [],
             });
 
-            await musicPlayer.addSong(song);
+            await addSong(song);
         });
 
         collector.on("end", async (collected, reason) => {
             if (collected.size === 0 || reason === "cancelled") {
-                await interaction.editReply({
-                    components: [],
-                    embeds: [generateSelectedEmbed()],
-                });
+                await interaction
+                    .editReply({
+                        components: [],
+                        embeds: [generateSelectedEmbed()],
+                    })
+                    .catch(() => undefined);
             }
         });
     },
@@ -95,5 +101,5 @@ function generateSelectedEmbed(song: Song | undefined = undefined) {
     return Client.embed()
         .setTitle(`Toegevoegd aan wachtrij: **${song.title}**`)
         .setDescription(song.url)
-        .setThumbnail(song.thumbnail ?? "");
+        .setThumbnail(song.thumbnail ?? null);
 }
