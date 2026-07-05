@@ -1,3 +1,6 @@
 # Ignore artifacts:
+dist
 build
 coverage
+pnpm-lock.yaml
+.pnpm-store
