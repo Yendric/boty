@@ -15,13 +15,12 @@ export default class ModerationService {
     public static async generateModerationInstructions(
         interaction: GuildCommandInteraction,
         instructions: string,
-        callback: () => Promise<void>
+        callback: () => Promise<void>,
     ) {
         const instructionEmbed = Client.embed().setDescription(instructions);
         const instructionMessage = await interaction.reply({
             embeds: [instructionEmbed],
             components: [banButtons],
-            fetchReply: true,
         });
 
         const collector = instructionMessage.createMessageComponentCollector({
@@ -48,11 +47,13 @@ export default class ModerationService {
 
         collector.on("end", async (collected) => {
             if (collected.size == 0) {
-                await interaction.editReply({
-                    content: "Straf geannuleerd!",
-                    components: [],
-                    embeds: [],
-                });
+                await interaction
+                    .editReply({
+                        content: "Straf geannuleerd!",
+                        components: [],
+                        embeds: [],
+                    })
+                    .catch(() => undefined);
             }
         });
     }

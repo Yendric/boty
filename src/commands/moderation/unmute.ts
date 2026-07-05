@@ -6,7 +6,7 @@ export default new GuildCommand({
         .setName("unmute")
         .setDescription("Unmute een gebruiker.")
         .addUserOption((option) =>
-            option.setName("target").setDescription("Wie moet er niet meer gemuted zijn?").setRequired(true)
+            option.setName("target").setDescription("Wie moet er niet meer gemuted zijn?").setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
     async execute(_, interaction) {

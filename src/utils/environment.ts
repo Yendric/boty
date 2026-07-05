@@ -1,6 +1,7 @@
-export function getEnvVariable(key: string) {
-    if (!process.env[key]) {
+export function getEnvVariable(key: string): string {
+    const value = process.env[key];
+    if (!value) {
         throw new Error(`.env variable ${key} niet gevonden.`);
     }
-    return process.env[key] as string;
+    return value;
 }

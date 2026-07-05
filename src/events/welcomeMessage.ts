@@ -2,10 +2,10 @@ import Client from "@/classes/Client";
 import EventHandler from "@/classes/EventHandler";
 import Guild from "@/models/Guild";
 import { MessageType } from "@/types";
-import { ChannelType } from "discord.js";
+import { ChannelType, Events } from "discord.js";
 
 export default new EventHandler({
-    event: "guildMemberAdd",
+    event: Events.GuildMemberAdd,
     async execute(_, [member]) {
         const settings = await new Guild(member.guild.id).fetch();
 
@@ -18,7 +18,7 @@ export default new EventHandler({
         const welcomeMessageChannel = member.guild.channels.cache.get(settings.welcomeMessageChannel);
         if (!welcomeMessageChannel || welcomeMessageChannel.type !== ChannelType.GuildText) return;
 
-        welcomeMessageChannel.send({
+        await welcomeMessageChannel.send({
             embeds: [
                 Client.embed(MessageType.Success)
                     .setTitle(`${member.guild.name}`)

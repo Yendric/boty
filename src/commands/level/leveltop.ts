@@ -22,8 +22,8 @@ export default new GuildCommand({
                     points.map(async (user, index) => ({
                         name: `#${index + 1}`,
                         value: `<@${user.id}>: ${user.xp} XP (level ${(await new User(user.id).getLevelData()).level})`,
-                    }))
-                )
+                    })),
+                ),
             );
 
         return interaction.reply({ embeds: [embed] });

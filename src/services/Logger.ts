@@ -7,9 +7,9 @@ export default class Logger {
         if (logType == MessageType.Info) {
             console.info(`[INFO] [${timeString}] ${message}`);
         } else if (logType == MessageType.Success) {
-            console.log(`\x1b[32m[INFO] [${timeString}] ${message}`);
+            console.log(`\x1b[32m[INFO] [${timeString}] ${message}\x1b[0m`);
         } else {
-            console.error(`\x1b[31m[ERROR] [${timeString}] ${message}`);
+            console.error(`\x1b[31m[ERROR] [${timeString}] ${message}\x1b[0m`);
         }
     }
 

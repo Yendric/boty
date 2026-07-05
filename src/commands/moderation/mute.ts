@@ -1,6 +1,8 @@
 import GuildCommand from "@/classes/GuildCommand";
-import { GuildMember, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
-import ms from "ms";
+import { GuildMember, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import ms, { StringValue } from "ms";
+
+const MAX_TIMEOUT_MS = 28 * 24 * 60 * 60 * 1000;
 
 export default new GuildCommand({
     data: new SlashCommandBuilder()
@@ -15,9 +17,16 @@ export default new GuildCommand({
         if (!interaction.guild.members.me?.permissionsIn(interaction.channel).has(PermissionFlagsBits.ModerateMembers))
             return interaction.reply("Ik heb hier geen toestemming voor.");
 
-        const target = interaction.options.getMember("target") as GuildMember | null;
-        if (!target) return interaction.reply("Geen gebruiker opgegeven.");
-        const duration = ms(interaction.options.getString("duration") ?? "1m");
+        const target = interaction.options.getMember("target");
+        if (!(target instanceof GuildMember)) return interaction.reply("Geen gebruiker opgegeven.");
+
+        const duration = ms(interaction.options.getString("duration", true) as StringValue);
+        if (!duration || duration <= 0 || duration > MAX_TIMEOUT_MS) {
+            return interaction.reply({
+                content: "Ongeldige duur. Gebruik bijvoorbeeld `10m`, `1h` of `7d` (maximaal 28 dagen).",
+                flags: MessageFlags.Ephemeral,
+            });
+        }
 
         await target.timeout(duration);
         await interaction.reply({ content: `${target} is nu gemuted.` });

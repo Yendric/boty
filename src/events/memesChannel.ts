@@ -1,10 +1,10 @@
 import EventHandler from "@/classes/EventHandler";
 import Guild from "@/models/Guild";
 import { validURL } from "@/utils/string";
-import { ChannelType } from "discord.js";
+import { ChannelType, Events } from "discord.js";
 
 export default new EventHandler({
-    event: "messageCreate",
+    event: Events.MessageCreate,
     async execute(_, [message]) {
         if (message.author.bot || message.channel.type == ChannelType.DM || !message.guild) return;
 

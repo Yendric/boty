@@ -13,32 +13,33 @@ export default new GuildCommand({
                 .setDescription("Hoeveel berichten wil je verwijderen ?")
                 .setMinValue(1)
                 .setMaxValue(99)
-                .setRequired(true)
+                .setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
     async execute(_, interaction) {
-        const amount = interaction.options.getInteger("amount");
-        if (!amount || amount < 1 || amount > 99) return interaction.reply("Kies een getal van 1 tot 99!");
+        const amount = interaction.options.getInteger("amount", true);
+        if (amount < 1 || amount > 99) return interaction.reply("Kies een getal van 1 tot 99!");
+        if (!interaction.channel.isTextBased()) return interaction.reply("Dit kan alleen in een tekstkanaal.");
 
         try {
             await interaction.channel.bulkDelete(amount);
             await interaction.reply({
                 embeds: [
                     Client.embed(MessageType.Success).setDescription(
-                        `${amount} ${amount == 1 ? "bericht" : "berichten"} verwijderd.`
+                        `${amount} ${amount == 1 ? "bericht" : "berichten"} verwijderd.`,
                     ),
                 ],
             });
-            setTimeout(() => interaction.deleteReply(), 5000);
-        } catch (err) {
+        } catch {
             await interaction.reply({
                 embeds: [
                     Client.embed(MessageType.Error).setDescription(
-                        "Er is iets misgegaan (zijn er berichten ouder dan 14 dagen?)."
+                        "Er is iets misgegaan (zijn er berichten ouder dan 14 dagen?).",
                     ),
                 ],
             });
-            setTimeout(() => interaction.deleteReply(), 5000);
         }
+
+        setTimeout(() => void interaction.deleteReply().catch(() => undefined), 5000);
     },
 });

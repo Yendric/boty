@@ -1,6 +1,6 @@
 import GuildCommand from "@/classes/GuildCommand";
 import Logger from "@/services/Logger";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
 export default new GuildCommand({
     data: new SlashCommandBuilder()
@@ -11,10 +11,12 @@ export default new GuildCommand({
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
     async execute(_, interaction) {
-        const message = interaction.options.getString("message");
-        if (!message) return;
+        const message = interaction.options.getString("message", true);
+        if (!interaction.channel.isSendable()) {
+            return interaction.reply({ content: "Ik kan hier geen bericht sturen.", flags: MessageFlags.Ephemeral });
+        }
 
-        await interaction.reply({ content: "Actie wordt uitgevoerd...", ephemeral: true });
+        await interaction.reply({ content: "Actie wordt uitgevoerd...", flags: MessageFlags.Ephemeral });
         await interaction.channel.send(message);
         Logger.info(
             `[SAY] "${interaction.user.username}" in "${interaction.channel.name}" (${interaction.guild.name}): "${message}"`,

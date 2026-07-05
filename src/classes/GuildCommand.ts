@@ -1,6 +1,6 @@
 import Command from "@/classes/Command";
 import { CommandExecutor, GuildCommandExecutor, GuildCommandInteraction } from "@/types";
-import { GuildChannel, GuildMember, SlashCommandOptionsOnlyBuilder } from "discord.js";
+import { GuildChannel, GuildMember, MessageFlags, SlashCommandOptionsOnlyBuilder } from "discord.js";
 
 export interface GuildCommandOptions {
     data: SlashCommandOptionsOnlyBuilder;
@@ -15,7 +15,10 @@ export default class GuildCommand extends Command {
                 !(interaction.member instanceof GuildMember) ||
                 !(interaction.channel instanceof GuildChannel)
             )
-                return interaction.reply("Dit commando kan alleen in een server gebruikt worden.");
+                return interaction.reply({
+                    content: "Dit commando kan alleen in een server gebruikt worden.",
+                    flags: MessageFlags.Ephemeral,
+                });
 
             return execute(client, interaction as GuildCommandInteraction);
         };

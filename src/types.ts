@@ -13,7 +13,7 @@ export type GuildCommandExecutor = (client: Client, interaction: GuildCommandInt
 
 export type EventExecutor<T extends keyof ClientEvents> = (
     client: Client,
-    eventData: ClientEvents[T]
+    eventData: ClientEvents[T],
 ) => Promise<void> | void;
 
 export enum MessageType {
@@ -21,11 +21,3 @@ export enum MessageType {
     Success,
     Error,
 }
-
-export type NumIcons = { [key: number]: string[] };
-
-export type Contributor = {
-    userId: string;
-    guildId: string;
-    contributedNumbers: number;
-};

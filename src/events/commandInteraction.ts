@@ -1,7 +1,9 @@
 import EventHandler from "@/classes/EventHandler";
+import Logger from "@/services/Logger";
+import { Events, MessageFlags } from "discord.js";
 
 export default new EventHandler({
-    event: "interactionCreate",
+    event: Events.InteractionCreate,
     async execute(client, [interaction]) {
         if (!interaction.isChatInputCommand()) return;
 
@@ -11,12 +13,24 @@ export default new EventHandler({
         try {
             await command.execute(client, interaction);
         } catch (error) {
-            if (interaction.channel?.isSendable()) {
-                await interaction.channel.send({
-                    content: "Er is iets foutsgegaan bij het uitvoeren van dit commando!",
-                });
+            Logger.error(
+                `Fout bij /${interaction.commandName}: ${error instanceof Error ? (error.stack ?? error.message) : error}`,
+            );
+
+            const errorReply = {
+                content: "Er is iets fout gegaan bij het uitvoeren van dit commando!",
+                flags: MessageFlags.Ephemeral,
+            } as const;
+
+            try {
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp(errorReply);
+                } else {
+                    await interaction.reply(errorReply);
+                }
+            } catch {
+                // Interactie is verlopen: er valt niets meer te antwoorden.
             }
-            throw error;
         }
     },
 });

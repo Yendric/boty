@@ -3,19 +3,19 @@ import EventHandler from "@/classes/EventHandler";
 import Logger from "@/services/Logger";
 import { MessageType } from "@/types";
 import { getFiles } from "@/utils/files";
-import { ClientOptions, Collection, Client as DiscordClient, EmbedBuilder, REST, Routes } from "discord.js";
+import { ClientEvents, Collection, Client as DiscordClient, EmbedBuilder, Events } from "discord.js";
 
 export default class Client extends DiscordClient {
     public commands = new Collection<string, Command>();
 
-    constructor(token: string, options: ClientOptions) {
-        super(options);
-
-        this.login(token);
-        this.registerEventHandlers();
+    public async start(token: string) {
         this.loadCommands();
-        this.on("ready", this.registerCommands);
-        this.on("ready", this.logReady);
+        this.registerEventHandlers();
+        this.once(Events.ClientReady, (readyClient) => {
+            this.onReady(readyClient).catch((error) => Logger.error(`Registreren van commands mislukt: ${error}`));
+        });
+
+        await this.login(token);
     }
 
     public static embed(messageType: MessageType = MessageType.Info): EmbedBuilder {
@@ -33,43 +33,45 @@ export default class Client extends DiscordClient {
     }
 
     private registerEventHandlers() {
-        getFiles("events").forEach(async (file) => {
-            const eventHandler = require("../" + file).default as EventHandler<any>;
-
-            if (eventHandler.once) {
-                this.once(eventHandler.event, async (...args) => await eventHandler.execute(this, args));
-            } else {
-                this.on(eventHandler.event, async (...args) => await eventHandler.execute(this, args));
+        for (const file of getFiles("events")) {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports -- dynamische CJS-loader
+            const eventHandler = require(`../${file}`).default as EventHandler<keyof ClientEvents> | undefined;
+            if (!eventHandler?.event || !eventHandler.execute) {
+                Logger.error(`Bestand ${file} bevat geen geldige event handler.`);
+                continue;
             }
 
-            Logger.log(`Loaded event: ${file}`);
-        });
+            const listener = (...args: ClientEvents[keyof ClientEvents]) => void eventHandler.execute(this, args);
+            if (eventHandler.once) {
+                this.once(eventHandler.event, listener);
+            } else {
+                this.on(eventHandler.event, listener);
+            }
+
+            Logger.log(`Event geladen: ${file}`);
+        }
     }
 
     private loadCommands() {
-        getFiles("commands").forEach(async (file) => {
-            const interaction = require("../" + file).default as Command;
-            this.commands.set(interaction.data.name, interaction);
+        for (const file of getFiles("commands")) {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports -- dynamische CJS-loader
+            const command = require(`../${file}`).default as Command | undefined;
+            if (!command?.data || !command.execute) {
+                Logger.error(`Bestand ${file} bevat geen geldig command.`);
+                continue;
+            }
 
-            Logger.log(`Loaded command: ${file}`);
-        });
+            this.commands.set(command.data.name, command);
+            Logger.log(`Command geladen: ${file}`);
+        }
     }
 
-    private async registerCommands() {
-        if (!this.token) throw new Error("Token is verdwenen.");
-        if (!this.user) throw new Error("Application ID niet gevonden (besta ik wel??).");
+    private async onReady(readyClient: DiscordClient<true>) {
+        await readyClient.application.commands.set(this.commands.map((command) => command.data.toJSON()));
 
-        const rest = new REST().setToken(this.token);
-
-        await rest.put(Routes.applicationCommands(this.user?.id), {
-            body: this.commands.map((command) => command.data),
-        });
-    }
-
-    private logReady() {
-        Logger.log(`Online in ${this.guilds.cache.size} servers.`);
+        Logger.log(`Online in ${readyClient.guilds.cache.size} servers.`);
         Logger.log(
-            `Invite link: https://discord.com/oauth2/authorize?client_id=${this.user?.id}&scope=bot&permissions=8`
+            `Invite link: https://discord.com/oauth2/authorize?client_id=${readyClient.user.id}&scope=bot&permissions=8`,
         );
     }
 }

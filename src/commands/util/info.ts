@@ -23,20 +23,6 @@ export default new GuildCommand({
                             inline: true,
                         },
                         {
-                            name: "Online mensen:",
-                            value: `${interaction.guild.members.cache.filter(
-                                (member) => !member.user.bot && (member?.presence?.status ?? "offline") !== "offline",
-                            )?.size}`,
-                            inline: true,
-                        },
-                        {
-                            name: "Offline mensen:",
-                            value: `${interaction.guild.members.cache.filter(
-                                (member) => !member.user.bot && (member?.presence?.status ?? "offline") == "offline",
-                            )?.size}`,
-                            inline: true,
-                        },
-                        {
                             name: "Gemaakt op:",
                             value: `${interaction.guild.createdAt.toLocaleString()}`,
                             inline: true,

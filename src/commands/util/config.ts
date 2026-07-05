@@ -21,7 +21,7 @@ export default new GuildCommand({
                                 inline: true,
                                 name: key,
                                 value: value?.toString() ?? "*(niet ingesteld)*",
-                            }))
+                            })),
                     ),
             ],
         });
